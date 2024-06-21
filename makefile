@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-VENV_BIN_PATH := venv/bin/
+VENV_BIN_PATH ?= venv/bin/
 
 venv:
 	python3 -m venv venv && \
