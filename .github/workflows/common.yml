@@ -1,0 +1,21 @@
+on: [push]
+name: Common checks
+jobs:
+  python-common-checks:
+    runs-on: ubuntu-latest
+    env:
+      BIN_DIR: "" # See makefile for more info
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Check formatting
+        run: make format-check
+      - name: Linting
+        run: make lint
+      - name: Unit tests
+        run: make test
