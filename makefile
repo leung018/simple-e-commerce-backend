@@ -11,3 +11,5 @@ format-check:
 	${PATH_PREFIX}black . --check
 format:
 	${PATH_PREFIX}black .
+lint:
+	${PATH_PREFIX}mypy . --check-untyped-defs
