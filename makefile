@@ -7,3 +7,7 @@ venv:
 	pip install -r requirements.txt -r requirements-dev.txt
 test:
 	${PATH_PREFIX}pytest
+format-check:
+	${PATH_PREFIX}black . --check
+format:
+	${PATH_PREFIX}black .
