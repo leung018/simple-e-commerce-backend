@@ -2,5 +2,6 @@
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.formatOnSave": true
-  }
+  },
+  "mypy-type-checker.args": ["--check-untyped-defs"]
 }
