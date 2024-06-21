@@ -1,15 +1,15 @@
 SHELL := /bin/bash
-VENV_BIN_PATH ?= venv/bin/
+BIN_DIR ?= venv/bin/
 
 venv:
 	python3 -m venv venv && \
 	source venv/bin/activate && \
 	pip install -r requirements.txt -r requirements-dev.txt
 test:
-	${VENV_BIN_PATH}pytest
+	${BIN_DIR}pytest
 format-check:
-	${VENV_BIN_PATH}black . --check
+	${BIN_DIR}black . --check
 format:
-	${VENV_BIN_PATH}black .
+	${BIN_DIR}black .
 lint:
-	${VENV_BIN_PATH}mypy . --check-untyped-defs
+	${BIN_DIR}mypy . --check-untyped-defs
