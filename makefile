@@ -9,7 +9,7 @@ run-db:
 	docker compose up -d
 clean-db:
 	docker compose down -v
-test: run-db
+test:
 	${BIN_DIR}pytest
 format-check:
 	${BIN_DIR}black . --check
