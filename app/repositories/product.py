@@ -16,38 +16,50 @@ class ProductRepositoryInterface(ABC):
 
 class PostgresProductRepository(ProductRepositoryInterface):
     def __init__(self):
-        self.conn = new_postgres_conn(new_postgres_context_from_env())
-        with self.conn.cursor() as cur:
-            cur.execute(
+        self._context = new_postgres_context_from_env()
+        with self._conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS products (
+                        id VARCHAR PRIMARY KEY,
+                        name VARCHAR NOT NULL,
+                        category VARCHAR NOT NULL,
+                        price NUMERIC,
+                        quantity INTEGER
+                    );  
                 """
-                CREATE TABLE IF NOT EXISTS products (
-                    id VARCHAR PRIMARY KEY,
-                    name VARCHAR NOT NULL,
-                    category VARCHAR NOT NULL,
-                    price NUMERIC,
-                    quantity INTEGER
-                );  
-            """
-            )
+                )
+                cur.execute(  # TODO: remove this later
+                    """
+                    DELETE FROM products;
+                    """
+                )
+            conn.commit()
+
+    def _conn(self):
+        return new_postgres_conn(self._context)
 
     def save(self, product: Product):
-        with self.conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO products (id, name, category, price, quantity)
-                VALUES (%s, %s, %s, %s, %s)
-            """,
-                (
-                    product.id,
-                    product.name,
-                    product.category,
-                    product.price,
-                    product.quantity,
-                ),
-            )
+        with self._conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO products (id, name, category, price, quantity)
+                    VALUES (%s, %s, %s, %s, %s)
+                """,
+                    (
+                        product.id,
+                        product.name,
+                        product.category,
+                        product.price,
+                        product.quantity,
+                    ),
+                )
+            conn.commit()
 
     def get_by_id(self, product_id: str) -> Product:
-        with self.conn.cursor() as cur:
+        with self._conn().cursor() as cur:
             cur.execute(
                 "SELECT id, name, category, price, quantity FROM products WHERE id = %s;",
                 (product_id,),
