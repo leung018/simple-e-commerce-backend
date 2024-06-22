@@ -5,7 +5,11 @@ venv:
 	python3 -m venv venv && \
 	source venv/bin/activate && \
 	pip install -r requirements.txt -r requirements-dev.txt
-test:
+run-db:
+	docker compose up -d
+clean-db:
+	docker compose down -v
+test: run-db
 	${BIN_DIR}pytest
 format-check:
 	${BIN_DIR}black . --check
