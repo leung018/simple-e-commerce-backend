@@ -24,6 +24,11 @@ jobs:
         run: make format-check
       - name: Linting
         run: make lint
+      - name: Diagnose network issues
+        run: |
+          nslookup postgres
+          ping -c 4 postgres
+          telnet postgres 5432
       - name: Unit tests
         run: make test
         env:
