@@ -17,7 +17,7 @@ def new_postgres_context_from_env() -> PostgresContext:
     port = int(os.getenv("POSTGRES_PORT", "5432"))
     user = os.getenv("POSTGRES_USER", "admin")
     password = os.getenv("POSTGRES_PASSWORD", "password")
-    database = os.getenv("POSTGRES_DATABASE", "db")
+    database = os.getenv("POSTGRES_DB", "db")
     return PostgresContext(
         host=host, port=port, user=user, password=password, database=database
     )
