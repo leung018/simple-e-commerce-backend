@@ -5,7 +5,7 @@ from app.models.product import Product
 
 class ProductRepositoryInterface(ABC):
     @abstractmethod
-    def upsert(self, product: Product):
+    def save(self, product: Product):
         pass
 
     @abstractmethod
