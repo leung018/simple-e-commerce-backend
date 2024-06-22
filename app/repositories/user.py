@@ -4,7 +4,7 @@ from app.models.user import User
 
 class UserRepositoryInterface(ABC):
     @abstractmethod
-    def add(self, user: User):
+    def save(self, user: User):
         pass
 
     @abstractmethod
