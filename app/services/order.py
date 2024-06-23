@@ -1,4 +1,5 @@
 from typing import Dict, SupportsAbs, TypeVar, Generic
+from app.models.order import Order
 from app.repositories.order import OrderRepositoryInterface
 from app.repositories.product import ProductRepositoryInterface
 from app.repositories.session import RepositorySession
