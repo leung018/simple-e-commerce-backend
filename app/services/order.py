@@ -27,3 +27,6 @@ class OrderService(Generic[S]):
 
             for product_id in product_id_to_quantity:
                 product = self._product_repository.get_by_id(product_id, self._session)
+                quantity = product_id_to_quantity[product_id]
+                if quantity <= 0:
+                    raise ValueError("purchasing quantity must be greater than 0")

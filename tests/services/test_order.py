@@ -73,3 +73,24 @@ def test_should_raise_entity_not_found_if_product_id_not_valid(
             session.commit()
 
         order_service.place_order(user.id, {"unknown": 3})
+
+
+def test_should_raise_error_if_purchase_quantity_is_not_greater_than_0(
+    order_service_fixture: OrderServiceFixture[RepositorySession],
+):
+    product_repository = order_service_fixture.product_repository
+    user_repository = order_service_fixture.user_repository
+    order_service = order_service_fixture.order_service
+    session = order_service_fixture.repository_session
+
+    product = new_product()
+    user = new_user()
+
+    with session:
+        user_repository.save(user, session)
+        product_repository.save(product, session)
+        session.commit()
+
+    with pytest.raises(ValueError) as exc_info:
+        order_service.place_order(user.id, {product.id: 0})
+    assert "purchasing quantity must be greater than 0" in str(exc_info.value)
