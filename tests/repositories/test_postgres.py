@@ -17,3 +17,18 @@ def test_should_session_not_commit_work_by_default(postgres_session: PostgresSes
 
     with other_session:
         assert len(order_repository.get_by_user_id("u1", other_session)) == 0
+
+
+def test_should_session_committed_changes_persist_to_other_session(
+    postgres_session: PostgresSession,
+):
+    order = new_order(user_id="u1")
+    with postgres_session:
+        order_repository = PostgresOrderRepository()
+        order_repository.add(order, postgres_session)
+        postgres_session.commit()
+
+    other_session = new_session()
+
+    with other_session:
+        assert len(order_repository.get_by_user_id("u1", other_session)) == 1
