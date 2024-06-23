@@ -14,7 +14,7 @@ from app.repositories.product import (
 )
 from app.repositories.session import RepositorySession
 from app.repositories.user import PostgresUserRepository, UserRepositoryInterface
-from app.services.order import OrderService
+from app.services.order import OrderService, PlaceOrderError
 from tests.models.constructor import new_product, new_user
 
 S = TypeVar("S", bound=SupportsAbs[RepositorySession])
@@ -41,6 +41,13 @@ class OrderServiceFixture(Generic[S]):
 
     def place_order(self, user_id, product_id_to_quantity: Dict[str, int]):
         self.order_service.place_order(user_id, product_id_to_quantity)
+
+    def assert_place_order_error(
+        self, user_id, product_id_to_quantity: Dict[str, int], expected_err_msg: str
+    ):
+        with pytest.raises(PlaceOrderError) as exc_info:
+            self.place_order(user_id, product_id_to_quantity)
+        assert expected_err_msg == str(exc_info.value)
 
 
 @pytest.fixture
@@ -90,14 +97,12 @@ def test_should_raise_error_if_total_purchase_quantity_is_not_greater_than_0(
     order_service_fixture.save_user(user)
     order_service_fixture.save_products([product1, product2])
 
-    expected_msg = "purchasing quantity must be greater than 0"
-    with pytest.raises(MyValueError) as exc_info:
-        order_service_fixture.place_order(user.id, {"p1": 0, "p2": 2})
-    assert expected_msg in str(exc_info.value)
+    expected_err_msg = "purchasing quantity must be greater than 0"
 
-    with pytest.raises(MyValueError) as exc_info:
-        order_service_fixture.place_order(user.id, {})
-    assert expected_msg in str(exc_info.value)
+    order_service_fixture.assert_place_order_error(
+        user.id, {"p1": 0, "p2": 2}, expected_err_msg
+    )
+    order_service_fixture.assert_place_order_error(user.id, {}, expected_err_msg)
 
 
 def test_should_raise_error_if_purchase_quantity_is_less_than_product_quantity(
@@ -110,9 +115,9 @@ def test_should_raise_error_if_purchase_quantity_is_less_than_product_quantity(
     order_service_fixture.save_user(user)
     order_service_fixture.save_products([product])
 
-    with pytest.raises(MyValueError) as exc_info:
-        order_service_fixture.place_order(user.id, {product.id: 6})
-    assert "quantity of product is not enough for your purchase" in str(exc_info.value)
+    order_service_fixture.assert_place_order_error(
+        user.id, {product.id: 6}, "quantity of product is not enough for your purchase"
+    )
 
 
 def test_should_raise_error_if_user_balance_is_not_enough_to_buy(
@@ -120,11 +125,13 @@ def test_should_raise_error_if_user_balance_is_not_enough_to_buy(
 ):
     product1 = new_product("p1", quantity=99, price=2)
     product2 = new_product("p2", quantity=99, price=3)
+    # total price: 2*2 + 3*5 = 19
+
     user = new_user(balance=18.9)
 
     order_service_fixture.save_user(user)
     order_service_fixture.save_products([product1, product2])
 
-    with pytest.raises(MyValueError) as exc_info:
-        order_service_fixture.place_order(user.id, {"p1": 2, "p2": 5})  # 2*2 + 3*5 = 19
-    assert "not enough balance" in str(exc_info.value)
+    order_service_fixture.assert_place_order_error(
+        user.id, {"p1": 2, "p2": 5}, "not enough balance"
+    )
