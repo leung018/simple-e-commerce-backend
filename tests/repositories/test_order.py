@@ -1,6 +1,6 @@
 from app.repositories.order import PostgresOrderRepository
 from app.repositories.postgres import PostgresSession
-from tests.repositories.constructor import new_order
+from tests.models.constructor import new_order
 
 
 def test_should_save_and_get_by_user_id(postgres_session: PostgresSession):

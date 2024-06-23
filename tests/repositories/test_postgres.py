@@ -1,7 +1,7 @@
 import pytest
 from app.repositories.postgres import PostgresSession, new_postgres_context_from_env
 from app.repositories.order import PostgresOrderRepository
-from tests.repositories.constructor import new_order
+from tests.models.constructor import new_order
 
 
 def test_should_session_not_commit_work_by_default(postgres_session: PostgresSession):

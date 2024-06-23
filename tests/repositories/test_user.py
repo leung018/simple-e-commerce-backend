@@ -1,14 +1,10 @@
 import pytest
-from app.models.user import User
 from app.repositories.err import EntityNotFoundError
 from app.repositories.postgres import PostgresSession
 from app.repositories.user import (
     PostgresUserRepository,
 )
-
-
-def new_user(id="u1", balance=100.2):
-    return User(id=id, balance=balance)
+from tests.models.constructor import new_user
 
 
 def test_should_save_and_get_user(postgres_session: PostgresSession):
