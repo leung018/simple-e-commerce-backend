@@ -16,8 +16,7 @@ def test_should_save_and_get_user(postgres_session: PostgresSession):
     user_repository = PostgresUserRepository()
     with postgres_session:
         user_repository.save(user, postgres_session)
-        postgres_session.commit()
-    assert user == user_repository.get_by_id(user.id, postgres_session)
+        assert user == user_repository.get_by_id(user.id, postgres_session)
 
 
 def test_should_raise_not_found_if_user_id_not_exist(
@@ -25,5 +24,6 @@ def test_should_raise_not_found_if_user_id_not_exist(
 ):
     user_repository = PostgresUserRepository()
 
-    with pytest.raises(EntityNotFoundError):
-        user_repository.get_by_id("unknown", postgres_session)
+    with postgres_session:
+        with pytest.raises(EntityNotFoundError):
+            user_repository.get_by_id("unknown", postgres_session)

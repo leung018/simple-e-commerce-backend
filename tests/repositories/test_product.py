@@ -16,13 +16,13 @@ def test_should_save_and_get_product(postgres_session: PostgresSession):
     product_repository = PostgresProductRepository()
     with postgres_session:
         product_repository.save(product, postgres_session)
-        postgres_session.commit()
-    assert product == product_repository.get_by_id(product.id, postgres_session)
+        assert product == product_repository.get_by_id(product.id, postgres_session)
 
 
 def test_should_raise_not_found_if_product_id_not_exist(
     postgres_session: PostgresSession,
 ):
     product_repository = PostgresProductRepository()
-    with pytest.raises(EntityNotFoundError):
-        product_repository.get_by_id("unknown", postgres_session)
+    with postgres_session:
+        with pytest.raises(EntityNotFoundError):
+            product_repository.get_by_id("unknown", postgres_session)
