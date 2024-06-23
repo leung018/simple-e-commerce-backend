@@ -6,8 +6,12 @@ class RepositorySession(ABC):
         pass
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        pass
+        self.rollback()
 
     @abstractmethod
     def commit(self):
+        pass
+
+    @abstractmethod
+    def rollback(self):
         pass
