@@ -1,13 +1,9 @@
 from dataclasses import dataclass
-from typing import Dict, Generic, List, SupportsAbs, TypeVar
+from typing import Dict, Generic, SupportsAbs, TypeVar
 import pytest
 
-from app.err import MyValueError
-from app.models.product import Product
-from app.models.user import User
 from app.repositories.err import EntityNotFoundError
 from app.repositories.order import OrderRepositoryInterface, PostgresOrderRepository
-from app.repositories.postgres import PostgresSession
 from app.repositories.product import (
     PostgresProductRepository,
     ProductRepositoryInterface,
