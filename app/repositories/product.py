@@ -1,65 +1,44 @@
 from abc import ABC, abstractmethod
+from typing import Generic, TypeVar, SupportsAbs
 
 from app.models.product import Product
-from app.repositories.postgres import new_postgres_conn, new_postgres_context_from_env
+from app.repositories.postgres import (
+    PostgresSession,
+)
+from app.repositories.session import RepositorySession
+
+S = TypeVar("S", bound=SupportsAbs[RepositorySession])
 
 
-class ProductRepositoryInterface(ABC):
+class ProductRepositoryInterface(ABC, Generic[S]):
     @abstractmethod
-    def save(self, product: Product):
+    def save(self, product: Product, session: S):
         pass
 
     @abstractmethod
-    def get_by_id(self, product_id: str) -> Product:
+    def get_by_id(self, product_id: str, session: S) -> Product:
         pass
 
 
 class PostgresProductRepository(ProductRepositoryInterface):
-    def __init__(self):
-        self._context = new_postgres_context_from_env()
-        with self._conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS products (
-                        id VARCHAR PRIMARY KEY,
-                        name VARCHAR NOT NULL,
-                        category VARCHAR NOT NULL,
-                        price NUMERIC,
-                        quantity INTEGER
-                    );  
+    def save(self, product: Product, session: PostgresSession):
+        with session.conn.cursor() as cur:
+            cur.execute(
                 """
-                )
-                cur.execute(  # TODO: remove this later
-                    """
-                    DELETE FROM products;
-                    """
-                )
-            conn.commit()
-
-    def _conn(self):
-        return new_postgres_conn(self._context)
-
-    def save(self, product: Product):
-        with self._conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
                     INSERT INTO products (id, name, category, price, quantity)
                     VALUES (%s, %s, %s, %s, %s)
                 """,
-                    (
-                        product.id,
-                        product.name,
-                        product.category,
-                        product.price,
-                        product.quantity,
-                    ),
-                )
-            conn.commit()
+                (
+                    product.id,
+                    product.name,
+                    product.category,
+                    product.price,
+                    product.quantity,
+                ),
+            )
 
-    def get_by_id(self, product_id: str) -> Product:
-        with self._conn().cursor() as cur:
+    def get_by_id(self, product_id: str, session: PostgresSession) -> Product:
+        with session.conn.cursor() as cur:
             cur.execute(
                 "SELECT id, name, category, price, quantity FROM products WHERE id = %s;",
                 (product_id,),

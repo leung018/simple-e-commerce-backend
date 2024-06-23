@@ -2,6 +2,8 @@ from dataclasses import dataclass
 import os
 import psycopg
 
+from app.repositories.session import RepositorySession
+
 
 @dataclass(frozen=True)
 class PostgresContext:
@@ -31,3 +33,25 @@ def new_postgres_conn(postgres_context: PostgresContext):
         dbname=postgres_context.database,
         port=postgres_context.port,
     )
+
+
+class PostgresSession(RepositorySession):
+    def __init__(self):
+        self.conn = new_postgres_conn(new_postgres_context_from_env())
+        with self:
+            with self.conn.cursor() as cur:
+                cur.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS products (
+                        id VARCHAR PRIMARY KEY,
+                        name VARCHAR NOT NULL,
+                        category VARCHAR NOT NULL,
+                        price NUMERIC,
+                        quantity INTEGER
+                    );  
+                """
+                )
+            self.commit()
+
+    def commit(self):
+        self.conn.commit()
