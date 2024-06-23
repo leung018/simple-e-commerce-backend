@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Generic, SupportsAbs, TypeVar
 from app.models.user import User
+from app.repositories.err import EntityNotFoundError
 from app.repositories.postgres import PostgresSession
 from app.repositories.session import RepositorySession
 
@@ -15,6 +16,10 @@ class UserRepositoryInterface(ABC, Generic[S]):
 
     @abstractmethod
     def get_by_id(self, user_id: str, session: S) -> User:
+        """
+        Raises:
+            EntityNotFoundError: If no user is found with the provided id.
+        """
         pass
 
 
@@ -31,7 +36,7 @@ class PostgresUserRepository(UserRepositoryInterface):
     """
 
     def save(self, user: User, session: PostgresSession):
-        with session.conn.cursor() as cur:
+        with session.get_cursor() as cur:
             cur.execute(
                 """
                 INSERT INTO users (id, balance)
@@ -41,7 +46,7 @@ class PostgresUserRepository(UserRepositoryInterface):
             )
 
     def get_by_id(self, user_id: str, session: PostgresSession) -> User:
-        with session.conn.cursor() as cur:
+        with session.get_cursor() as cur:
             cur.execute(
                 "SELECT id, balance FROM users WHERE id = %s;",
                 (user_id,),
@@ -52,4 +57,4 @@ class PostgresUserRepository(UserRepositoryInterface):
                     id=row[0],
                     balance=row[1],
                 )
-            raise NotImplementedError  # TODO: non happy path
+            raise EntityNotFoundError("user_id: {} doesn't exist".format(user_id))

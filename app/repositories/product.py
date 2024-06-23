@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, SupportsAbs
 
 from app.models.product import Product
+from app.repositories.err import EntityNotFoundError
 from app.repositories.postgres import (
     PostgresSession,
 )
@@ -17,6 +18,10 @@ class ProductRepositoryInterface(ABC, Generic[S]):
 
     @abstractmethod
     def get_by_id(self, product_id: str, session: S) -> Product:
+        """
+        Raises:
+            EntityNotFoundError: If no product is found with the provided id.
+        """
         pass
 
 
@@ -35,7 +40,7 @@ class PostgresProductRepository(ProductRepositoryInterface):
     """
 
     def save(self, product: Product, session: PostgresSession):
-        with session.conn.cursor() as cur:
+        with session.get_cursor() as cur:
             cur.execute(
                 """
                     INSERT INTO products (id, name, category, price, quantity)
@@ -51,7 +56,7 @@ class PostgresProductRepository(ProductRepositoryInterface):
             )
 
     def get_by_id(self, product_id: str, session: PostgresSession) -> Product:
-        with session.conn.cursor() as cur:
+        with session.get_cursor() as cur:
             cur.execute(
                 "SELECT id, name, category, price, quantity FROM products WHERE id = %s;",
                 (product_id,),
@@ -65,4 +70,4 @@ class PostgresProductRepository(ProductRepositoryInterface):
                     price=row[3],
                     quantity=row[4],
                 )
-            raise NotImplementedError  # TODO: non happy path
+            raise EntityNotFoundError("product_id: {} doesn't exist".format(product_id))
