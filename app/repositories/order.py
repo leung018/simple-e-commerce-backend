@@ -20,11 +20,11 @@ class OrderRepositoryInterface(ABC, Generic[S]):
 
 class PostgresOrderRepository:
     CREATE_TABLES_IF_NOT_EXISTS = """
-        CREATE TABLE orders (
+        CREATE TABLE IF NOT EXISTS orders (
             id VARCHAR(36) PRIMARY KEY,
             user_id VARCHAR(36) NOT NULL
         );
-        CREATE TABLE order_products (
+        CREATE TABLE IF NOT EXISTS order_products (
             order_id VARCHAR(36) NOT NULL,
             product_id VARCHAR(36) NOT NULL,
             PRIMARY KEY (order_id, product_id)
