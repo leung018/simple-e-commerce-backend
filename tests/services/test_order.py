@@ -113,3 +113,18 @@ def test_should_raise_error_if_purchase_quantity_is_less_than_product_quantity(
     with pytest.raises(MyValueError) as exc_info:
         order_service_fixture.place_order(user.id, {product.id: 6})
     assert "quantity of product is not enough for your purchase" in str(exc_info.value)
+
+
+def test_should_raise_error_if_user_balance_is_not_enough_to_buy(
+    order_service_fixture: OrderServiceFixture[RepositorySession],
+):
+    product1 = new_product("p1", quantity=99, price=2)
+    product2 = new_product("p2", quantity=99, price=3)
+    user = new_user(balance=18.9)
+
+    order_service_fixture.save_user(user)
+    order_service_fixture.save_products([product1, product2])
+
+    with pytest.raises(MyValueError) as exc_info:
+        order_service_fixture.place_order(user.id, {"p1": 2, "p2": 5})  # 2*2 + 3*5 = 19
+    assert "not enough balance" in str(exc_info.value)

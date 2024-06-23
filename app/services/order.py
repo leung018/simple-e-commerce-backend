@@ -28,6 +28,8 @@ class OrderService(Generic[S]):
             user = self._user_repository.get_by_id(user_id, self._session)
             if not product_id_to_quantity:
                 raise MyValueError(_QUANTITY_NOT_POSITIVE_ERROR_MSG)
+
+            total_price = 0
             for product_id in product_id_to_quantity:
                 product = self._product_repository.get_by_id(product_id, self._session)
                 purchase_quantity = product_id_to_quantity[product_id]
@@ -37,3 +39,7 @@ class OrderService(Generic[S]):
                     raise MyValueError(
                         "quantity of product is not enough for your purchase"
                     )
+                total_price += purchase_quantity * product.price
+
+            if total_price > user.balance:
+                raise MyValueError("not enough balance")
