@@ -94,3 +94,24 @@ def test_should_raise_error_if_purchase_quantity_is_not_greater_than_0(
     with pytest.raises(ValueError) as exc_info:
         order_service.place_order(user.id, {product.id: 0})
     assert "purchasing quantity must be greater than 0" in str(exc_info.value)
+
+
+def test_should_raise_error_if_purchase_quantity_is_less_than_product_quantity(
+    order_service_fixture: OrderServiceFixture[RepositorySession],
+):
+    product_repository = order_service_fixture.product_repository
+    user_repository = order_service_fixture.user_repository
+    order_service = order_service_fixture.order_service
+    session = order_service_fixture.repository_session
+
+    product = new_product(quantity=5, price=1)
+    user = new_user(balance=1000)
+
+    with session:
+        user_repository.save(user, session)
+        product_repository.save(product, session)
+        session.commit()
+
+    with pytest.raises(ValueError) as exc_info:
+        order_service.place_order(user.id, {product.id: 6})
+    assert "quantity of product is not enough for your purchase" in str(exc_info.value)
