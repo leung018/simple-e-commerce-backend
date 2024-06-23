@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, SupportsAbs
 
 from app.models.product import Product
+from app.repositories.err import EntityNotFoundError
 from app.repositories.postgres import (
     PostgresSession,
 )
@@ -65,4 +66,4 @@ class PostgresProductRepository(ProductRepositoryInterface):
                     price=row[3],
                     quantity=row[4],
                 )
-            raise NotImplementedError  # TODO: non happy path
+            raise EntityNotFoundError("product_id: {} doesn't exist".format(product_id))
