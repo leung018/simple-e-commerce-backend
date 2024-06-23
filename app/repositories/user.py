@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Generic, SupportsAbs, TypeVar
 from app.models.user import User
+from app.repositories.err import EntityNotFoundError
 from app.repositories.postgres import PostgresSession
 from app.repositories.session import RepositorySession
 
@@ -52,4 +53,4 @@ class PostgresUserRepository(UserRepositoryInterface):
                     id=row[0],
                     balance=row[1],
                 )
-            raise NotImplementedError  # TODO: non happy path
+            raise EntityNotFoundError("user_id: {} doesn't exist".format(user_id))
