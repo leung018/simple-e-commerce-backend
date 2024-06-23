@@ -10,8 +10,8 @@ def postgres_session() -> Generator[PostgresSession, None, None]:
     session = PostgresSession(new_postgres_context_from_env())
     with session:
         set_up_tables(session)
-    session.commit()
+        session.commit()
     yield session
     with session:
         drop_tables(session)
-    session.commit()
+        session.commit()
