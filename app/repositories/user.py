@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from app.models.user import User
-from app.postgres import new_postgres_conn, new_postgres_context_from_env
+from app.repositories.postgres import new_postgres_conn, new_postgres_context_from_env
 
 
 class UserRepositoryInterface(ABC):

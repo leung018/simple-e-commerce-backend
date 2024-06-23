@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from app.models.product import Product
-from app.postgres import new_postgres_conn, new_postgres_context_from_env
+from app.repositories.postgres import new_postgres_conn, new_postgres_context_from_env
 
 
 class ProductRepositoryInterface(ABC):
