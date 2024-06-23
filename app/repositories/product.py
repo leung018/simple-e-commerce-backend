@@ -18,6 +18,10 @@ class ProductRepositoryInterface(ABC, Generic[S]):
 
     @abstractmethod
     def get_by_id(self, product_id: str, session: S) -> Product:
+        """
+        Raises:
+            EntityNotFoundError: If no product is found with the provided id.
+        """
         pass
 
 

@@ -16,6 +16,10 @@ class UserRepositoryInterface(ABC, Generic[S]):
 
     @abstractmethod
     def get_by_id(self, user_id: str, session: S) -> User:
+        """
+        Raises:
+            EntityNotFoundError: If no user is found with the provided id.
+        """
         pass
 
 
