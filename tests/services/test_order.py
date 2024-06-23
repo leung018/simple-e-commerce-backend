@@ -44,7 +44,7 @@ def order_service_fixture(postgres_session):
 
 
 def test_should_raise_entity_not_found_if_user_id_not_valid(
-    order_service_fixture: OrderServiceFixture,
+    order_service_fixture: OrderServiceFixture[RepositorySession],
 ):
     product_repository = order_service_fixture.product_repository
     order_service = order_service_fixture.order_service
@@ -52,5 +52,8 @@ def test_should_raise_entity_not_found_if_user_id_not_valid(
 
     product = new_product()
     with pytest.raises(EntityNotFoundError):
-        product_repository.save(product, session)
+        with session:
+            product_repository.save(product, session)
+            session.commit()
+
         order_service.place_order("unknown", {product.id: 3})
