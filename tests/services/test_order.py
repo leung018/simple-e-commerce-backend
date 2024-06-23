@@ -12,7 +12,7 @@ from app.repositories.product import (
 from app.repositories.session import RepositorySession
 from app.repositories.user import PostgresUserRepository, UserRepositoryInterface
 from app.services.order import OrderService
-from tests.models.constructor import new_product
+from tests.models.constructor import new_product, new_user
 
 S = TypeVar("S", bound=SupportsAbs[RepositorySession])
 
@@ -57,3 +57,19 @@ def test_should_raise_entity_not_found_if_user_id_not_valid(
             session.commit()
 
         order_service.place_order("unknown", {product.id: 3})
+
+
+def test_should_raise_entity_not_found_if_product_id_not_valid(
+    order_service_fixture: OrderServiceFixture[RepositorySession],
+):
+    user_repository = order_service_fixture.user_repository
+    order_service = order_service_fixture.order_service
+    session = order_service_fixture.repository_session
+
+    user = new_user()
+    with pytest.raises(EntityNotFoundError):
+        with session:
+            user_repository.save(user, session)
+            session.commit()
+
+        order_service.place_order(user.id, {"unknown": 3})

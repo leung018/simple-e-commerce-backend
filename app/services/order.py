@@ -24,3 +24,6 @@ class OrderService(Generic[S]):
     def place_order(self, user_id: str, product_id_to_quantity: Dict[str, int]):
         with self._session:
             user = self._user_repository.get_by_id(user_id, self._session)
+
+            for product_id in product_id_to_quantity:
+                product = self._product_repository.get_by_id(product_id, self._session)
