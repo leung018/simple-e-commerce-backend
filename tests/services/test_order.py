@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Generic, SupportsAbs, TypeVar
+from typing import Dict, Generic, List, SupportsAbs, TypeVar
 import pytest
 
 from app.err import MyValueError
@@ -45,9 +45,32 @@ class OrderServiceFixture(Generic[S]):
     def assert_place_order_error(
         self, user_id, product_id_to_quantity: Dict[str, int], expected_err_msg: str
     ):
+        product_ids = list(product_id_to_quantity.keys())
+
+        def fetch_order_related_data():
+            with self.session:
+                user = self.user_repository.get_by_id(user_id, self.session)
+                products = [
+                    self.product_repository.get_by_id(product_id, self.session)
+                    for product_id in product_ids
+                ]
+                total_num_of_orders = len(
+                    self.order_repository.get_by_user_id(user_id, self.session)
+                )
+                return (user, products, total_num_of_orders)
+
+        user, products, total_num_of_orders = fetch_order_related_data()
+
         with pytest.raises(PlaceOrderError) as exc_info:
             self.place_order(user_id, product_id_to_quantity)
+
         assert expected_err_msg == str(exc_info.value)
+
+        # make sure no side effects:
+        new_user, new_products, new_total_num_of_orders = fetch_order_related_data()
+        assert user == new_user
+        assert products == new_products
+        assert total_num_of_orders == new_total_num_of_orders
 
 
 @pytest.fixture
