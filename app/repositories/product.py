@@ -21,6 +21,20 @@ class ProductRepositoryInterface(ABC, Generic[S]):
 
 
 class PostgresProductRepository(ProductRepositoryInterface):
+    CREATE_TABLE_IF_NOT_EXISTS = """
+                    CREATE TABLE IF NOT EXISTS products (
+                        id VARCHAR PRIMARY KEY,
+                        name VARCHAR NOT NULL,
+                        category VARCHAR NOT NULL,
+                        price NUMERIC,
+                        quantity INTEGER
+                    );  
+    """
+    DROP_TABLE = """
+                    DROP TABLE products;
+                
+    """
+
     def save(self, product: Product, session: PostgresSession):
         with session.conn.cursor() as cur:
             cur.execute(

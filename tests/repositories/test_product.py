@@ -1,21 +1,8 @@
-from typing import Generator
-import pytest
-
 from app.models.product import Product
 from app.repositories.postgres import PostgresSession
 from app.repositories.product import (
     PostgresProductRepository,
 )
-
-
-@pytest.fixture
-def postgres_session() -> Generator[PostgresSession, None, None]:
-    session = PostgresSession()
-    yield session
-    with session:
-        with session.conn.cursor() as cur:
-            cur.execute("DELETE FROM products;")
-    session.commit()
 
 
 def new_product(id="p1", name="Hello", category="My category", price=6.7, quantity=5):
