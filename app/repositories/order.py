@@ -18,7 +18,7 @@ class OrderRepositoryInterface(ABC, Generic[S]):
         pass
 
 
-class PostgresOrderRepository:
+class PostgresOrderRepository(OrderRepositoryInterface):
     CREATE_TABLES_IF_NOT_EXISTS = """
         CREATE TABLE IF NOT EXISTS orders (
             id VARCHAR(36) PRIMARY KEY,
