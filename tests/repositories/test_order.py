@@ -10,8 +10,8 @@ def test_should_save_and_get_by_user_id(postgres_session: PostgresSession):
         order_repository.add(order, postgres_session)
         postgres_session.commit()
 
-    retrieved_orders = order_repository.get_by_user_id("u1", postgres_session)
-    assert len(retrieved_orders) == 1
-    assert retrieved_orders[0] == order
+        retrieved_orders = order_repository.get_by_user_id("u1", postgres_session)
+        assert len(retrieved_orders) == 1
+        assert retrieved_orders[0] == order
 
-    assert len(order_repository.get_by_user_id("u2", postgres_session)) == 0
+        assert len(order_repository.get_by_user_id("u2", postgres_session)) == 0

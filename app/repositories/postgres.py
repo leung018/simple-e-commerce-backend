@@ -27,15 +27,23 @@ def new_postgres_context_from_env() -> PostgresContext:
 
 class PostgresSession(RepositorySession):
     def __init__(self, context: PostgresContext):
-        self._conn = self._new_postgres_conn(context)
+        self._context = context
 
-    def _new_postgres_conn(cls, postgres_context: PostgresContext):
+    def __enter__(self):
+        self._conn = self._new_postgres_conn()
+        return super().__enter__()
+
+    def __exit__(self, *args):
+        super().__exit__(*args)
+        self._conn.close()
+
+    def _new_postgres_conn(self):
         return psycopg.connect(
-            host=postgres_context.host,
-            user=postgres_context.user,
-            password=postgres_context.password,
-            dbname=postgres_context.database,
-            port=postgres_context.port,
+            host=self._context.host,
+            user=self._context.user,
+            password=self._context.password,
+            dbname=self._context.database,
+            port=self._context.port,
         )
 
     def get_cursor(self):
