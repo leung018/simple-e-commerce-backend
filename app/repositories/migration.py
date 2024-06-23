@@ -11,7 +11,7 @@ def set_up_tables(session: PostgresSession):
         PostgresOrderRepository.CREATE_TABLES_IF_NOT_EXISTS,
     ]
 
-    with session.conn.cursor() as cur:
+    with session.get_cursor() as cur:
         for stmt in stmts:
             cur.execute(stmt)
 
@@ -23,6 +23,6 @@ def drop_tables(session: PostgresSession):
         PostgresOrderRepository.DROP_TABLES,
     ]
 
-    with session.conn.cursor() as cur:
+    with session.get_cursor() as cur:
         for stmt in stmts:
             cur.execute(stmt)

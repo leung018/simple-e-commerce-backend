@@ -36,7 +36,7 @@ class PostgresUserRepository(UserRepositoryInterface):
     """
 
     def save(self, user: User, session: PostgresSession):
-        with session.conn.cursor() as cur:
+        with session.get_cursor() as cur:
             cur.execute(
                 """
                 INSERT INTO users (id, balance)
@@ -46,7 +46,7 @@ class PostgresUserRepository(UserRepositoryInterface):
             )
 
     def get_by_id(self, user_id: str, session: PostgresSession) -> User:
-        with session.conn.cursor() as cur:
+        with session.get_cursor() as cur:
             cur.execute(
                 "SELECT id, balance FROM users WHERE id = %s;",
                 (user_id,),

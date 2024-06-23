@@ -35,7 +35,7 @@ class PostgresOrderRepository:
     """
 
     def add(self, order: Order, session: PostgresSession):
-        with session.conn.cursor() as cursor:
+        with session.get_cursor() as cursor:
             cursor.execute(
                 "INSERT INTO orders (id, user_id) VALUES (%s, %s)",
                 (order.id, order.user_id),
@@ -48,7 +48,7 @@ class PostgresOrderRepository:
 
     def get_by_user_id(self, user_id: str, session: PostgresSession) -> List[Order]:
         orders = []
-        with session.conn.cursor() as cursor:
+        with session.get_cursor() as cursor:
             cursor.execute("SELECT id FROM orders WHERE user_id = %s", (user_id,))
             order_rows = cursor.fetchall()
             for (order_id,) in order_rows:

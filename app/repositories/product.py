@@ -40,7 +40,7 @@ class PostgresProductRepository(ProductRepositoryInterface):
     """
 
     def save(self, product: Product, session: PostgresSession):
-        with session.conn.cursor() as cur:
+        with session.get_cursor() as cur:
             cur.execute(
                 """
                     INSERT INTO products (id, name, category, price, quantity)
@@ -56,7 +56,7 @@ class PostgresProductRepository(ProductRepositoryInterface):
             )
 
     def get_by_id(self, product_id: str, session: PostgresSession) -> Product:
-        with session.conn.cursor() as cur:
+        with session.get_cursor() as cur:
             cur.execute(
                 "SELECT id, name, category, price, quantity FROM products WHERE id = %s;",
                 (product_id,),

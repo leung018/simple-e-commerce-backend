@@ -27,7 +27,7 @@ def new_postgres_context_from_env() -> PostgresContext:
 
 class PostgresSession(RepositorySession):
     def __init__(self, context: PostgresContext):
-        self.conn = self._new_postgres_conn(context)
+        self._conn = self._new_postgres_conn(context)
 
     def _new_postgres_conn(cls, postgres_context: PostgresContext):
         return psycopg.connect(
@@ -38,8 +38,11 @@ class PostgresSession(RepositorySession):
             port=postgres_context.port,
         )
 
+    def get_cursor(self):
+        return self._conn.cursor()
+
     def commit(self):
-        self.conn.commit()
+        self._conn.commit()
 
     def rollback(self):
-        self.conn.rollback()
+        self._conn.rollback()
