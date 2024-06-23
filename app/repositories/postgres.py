@@ -25,19 +25,18 @@ def new_postgres_context_from_env() -> PostgresContext:
     )
 
 
-def new_postgres_conn(postgres_context: PostgresContext):
-    return psycopg.connect(
-        host=postgres_context.host,
-        user=postgres_context.user,
-        password=postgres_context.password,
-        dbname=postgres_context.database,
-        port=postgres_context.port,
-    )
-
-
 class PostgresSession(RepositorySession):
-    def __init__(self):
-        self.conn = new_postgres_conn(new_postgres_context_from_env())
+    def __init__(self, context: PostgresContext):
+        self.conn = self._new_postgres_conn(context)
+
+    def _new_postgres_conn(cls, postgres_context: PostgresContext):
+        return psycopg.connect(
+            host=postgres_context.host,
+            user=postgres_context.user,
+            password=postgres_context.password,
+            dbname=postgres_context.database,
+            port=postgres_context.port,
+        )
 
     def commit(self):
         self.conn.commit()
