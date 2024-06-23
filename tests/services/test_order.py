@@ -80,18 +80,24 @@ def test_should_raise_entity_not_found_if_product_id_not_valid(
         order_service_fixture.place_order(user.id, {"unknown_product_id": 3})
 
 
-def test_should_raise_error_if_purchase_quantity_is_not_greater_than_0(
+def test_should_raise_error_if_total_purchase_quantity_is_not_greater_than_0(
     order_service_fixture: OrderServiceFixture[RepositorySession],
 ):
-    product = new_product()
+    product1 = new_product(id="p1")
+    product2 = new_product(id="p2")
     user = new_user()
 
     order_service_fixture.save_user(user)
-    order_service_fixture.save_products([product])
+    order_service_fixture.save_products([product1, product2])
+
+    expected_msg = "purchasing quantity must be greater than 0"
+    with pytest.raises(MyValueError) as exc_info:
+        order_service_fixture.place_order(user.id, {"p1": 0, "p2": 2})
+    assert expected_msg in str(exc_info.value)
 
     with pytest.raises(MyValueError) as exc_info:
-        order_service_fixture.place_order(user.id, {product.id: 0})
-    assert "purchasing quantity must be greater than 0" in str(exc_info.value)
+        order_service_fixture.place_order(user.id, {})
+    assert expected_msg in str(exc_info.value)
 
 
 def test_should_raise_error_if_purchase_quantity_is_less_than_product_quantity(
