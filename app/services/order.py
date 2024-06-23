@@ -1,4 +1,5 @@
 from typing import Dict, SupportsAbs, TypeVar, Generic
+from app.err import MyValueError
 from app.models.order import Order
 from app.repositories.order import OrderRepositoryInterface
 from app.repositories.product import ProductRepositoryInterface
@@ -29,8 +30,8 @@ class OrderService(Generic[S]):
                 product = self._product_repository.get_by_id(product_id, self._session)
                 purchase_quantity = product_id_to_quantity[product_id]
                 if purchase_quantity <= 0:
-                    raise ValueError("purchasing quantity must be greater than 0")
+                    raise MyValueError("purchasing quantity must be greater than 0")
                 if product.quantity < purchase_quantity:
-                    raise ValueError(
+                    raise MyValueError(
                         "quantity of product is not enough for your purchase"
                     )

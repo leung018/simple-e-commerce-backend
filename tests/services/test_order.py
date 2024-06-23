@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Dict, Generic, SupportsAbs, TypeVar
 import pytest
 
+from app.err import MyValueError
 from app.models.product import Product
 from app.models.user import User
 from app.repositories.err import EntityNotFoundError
@@ -88,7 +89,7 @@ def test_should_raise_error_if_purchase_quantity_is_not_greater_than_0(
     order_service_fixture.save_user(user)
     order_service_fixture.save_products([product])
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(MyValueError) as exc_info:
         order_service_fixture.place_order(user.id, {product.id: 0})
     assert "purchasing quantity must be greater than 0" in str(exc_info.value)
 
@@ -103,6 +104,6 @@ def test_should_raise_error_if_purchase_quantity_is_less_than_product_quantity(
     order_service_fixture.save_user(user)
     order_service_fixture.save_products([product])
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(MyValueError) as exc_info:
         order_service_fixture.place_order(user.id, {product.id: 6})
     assert "quantity of product is not enough for your purchase" in str(exc_info.value)
