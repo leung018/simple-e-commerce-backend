@@ -4,6 +4,7 @@ import pytest
 
 from app.repositories.err import EntityNotFoundError
 from app.repositories.order import OrderRepositoryInterface, PostgresOrderRepository
+from app.repositories.postgres import PostgresSession
 from app.repositories.product import (
     PostgresProductRepository,
     ProductRepositoryInterface,
@@ -50,7 +51,6 @@ def test_should_raise_entity_not_found_if_user_id_not_valid(
     session = order_service_fixture.repository_session
 
     product = new_product()
-    with session:
-        with pytest.raises(EntityNotFoundError):
-            product_repository.save(product, session)
-            order_service.place_order("unknown", {product.id: 3})
+    with pytest.raises(EntityNotFoundError):
+        product_repository.save(product, session)
+        order_service.place_order("unknown", {product.id: 3})

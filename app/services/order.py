@@ -16,7 +16,11 @@ class OrderService(Generic[S]):
         order_repository: OrderRepositoryInterface[S],
         repository_session: S,
     ):
-        pass
+        self._user_repository = user_repository
+        self._product_repository = product_repository
+        self._order_repository = order_repository
+        self._session = repository_session
 
     def place_order(self, user_id: str, product_id_to_quantity: Dict[str, int]):
-        pass
+        with self._session:
+            user = self._user_repository.get_by_id(user_id, self._session)
