@@ -1,12 +1,6 @@
-from typing import Optional
-from app.models.order import Order
 from app.repositories.order import PostgresOrderRepository
 from app.repositories.postgres import PostgresSession
-
-
-def new_order(id="o1", user_id="u1", product_ids: tuple[str, ...] = ("p1", "p2")):
-    Order(id="o1", user_id="u1", product_ids=product_ids)
-    return Order(id, user_id, product_ids)
+from tests.repositories.constructor import new_order
 
 
 def test_should_save_and_get_by_user_id(postgres_session: PostgresSession):

@@ -1,6 +1,6 @@
 from app.repositories.postgres import PostgresSession, new_postgres_context_from_env
 from app.repositories.order import PostgresOrderRepository
-from tests.repositories.test_order import new_order
+from tests.repositories.constructor import new_order
 
 
 def new_session():
