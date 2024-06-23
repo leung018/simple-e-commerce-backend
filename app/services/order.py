@@ -1,15 +1,19 @@
-from typing import Dict
+from typing import Dict, SupportsAbs, TypeVar, Generic
 from app.repositories.order import OrderRepositoryInterface
 from app.repositories.product import ProductRepositoryInterface
+from app.repositories.session import RepositorySession
 from app.repositories.user import UserRepositoryInterface
 
+S = TypeVar("S", bound=SupportsAbs[RepositorySession])
 
-class OrderService:
+
+class OrderService(Generic[S]):
     def __init__(
         self,
-        user_repository: UserRepositoryInterface,
-        product_repository: ProductRepositoryInterface,
-        order_repository: OrderRepositoryInterface,
+        user_repository: UserRepositoryInterface[S],
+        product_repository: ProductRepositoryInterface[S],
+        order_repository: OrderRepositoryInterface[S],
+        repository_session: S,
     ):
         pass
 
