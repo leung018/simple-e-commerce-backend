@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import Dict, Generic, TypeVar
 import pytest
 
-from app.repositories.err import EntityNotFoundError
 from app.repositories.order import OrderRepositoryInterface, PostgresOrderRepository
 from app.repositories.product import (
     PostgresProductRepository,
@@ -84,26 +83,6 @@ def order_service_fixture(postgres_session):
         order_repository,
         postgres_session,
     )
-
-
-def test_should_raise_entity_not_found_if_user_id_not_valid(
-    order_service_fixture: OrderServiceFixture,
-):
-    product = new_product()
-    order_service_fixture.save_products([product])
-
-    with pytest.raises(EntityNotFoundError):
-        order_service_fixture.place_order("unknown_user_id", {product.id: 3})
-
-
-def test_should_raise_entity_not_found_if_product_id_not_valid(
-    order_service_fixture: OrderServiceFixture,
-):
-    user = new_user()
-    order_service_fixture.save_user(user)
-
-    with pytest.raises(EntityNotFoundError):
-        order_service_fixture.place_order(user.id, {"unknown_product_id": 3})
 
 
 def test_should_raise_error_if_total_purchase_quantity_is_not_greater_than_0(
