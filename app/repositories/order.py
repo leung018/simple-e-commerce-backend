@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Generic, TypeVar
+from typing import Generic, TypeVar
 
 from app.models.order import Order
 from app.repositories.postgres import PostgresSession
@@ -14,9 +14,12 @@ class OrderRepositoryInterface(ABC, Generic[S]):
         pass
 
     @abstractmethod
-    def get_by_user_id(self, user_id: str, session: S) -> List[Order]:
+    def get_by_user_id(self, user_id: str, session: S) -> list[Order]:
         """
-        Retrieves a list of orders sorted such that the most recently created order appears first.
+        Retrieves a list of orders, sorted such that the most recently created order appears first.
+
+        Note: It might be possible to specify the preferred way of sorting using the Specification Pattern,
+        but for the current project scope, the existing arrangement is sufficient.
         """
         pass
 
@@ -50,7 +53,7 @@ class PostgresOrderRepository(OrderRepositoryInterface):
                     (order.id, product_id),
                 )
 
-    def get_by_user_id(self, user_id: str, session: PostgresSession) -> List[Order]:
+    def get_by_user_id(self, user_id: str, session: PostgresSession) -> list[Order]:
         orders = []
         with session.get_cursor() as cursor:
             cursor.execute(
