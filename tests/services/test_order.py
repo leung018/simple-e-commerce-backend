@@ -1,7 +1,10 @@
 from dataclasses import dataclass
-from typing import Dict, Generic, TypeVar
+from typing import Dict, Generic, Optional, TypeVar
 import pytest
 
+from app.models.order import Order
+from app.models.product import Product
+from app.models.user import User
 from app.repositories.order import OrderRepositoryInterface, PostgresOrderRepository
 from app.repositories.product import (
     PostgresProductRepository,
@@ -23,12 +26,12 @@ class OrderServiceFixture(Generic[S]):
     order_repository: OrderRepositoryInterface[S]
     session: S
 
-    def save_user(self, user):
+    def save_user(self, user: User):
         with self.session:
             self.user_repository.save(user, self.session)
             self.session.commit()
 
-    def save_products(self, products):
+    def save_products(self, products: list[Product]):
         with self.session:
             for product in products:
                 self.product_repository.save(product, self.session)
@@ -37,24 +40,37 @@ class OrderServiceFixture(Generic[S]):
     def place_order(self, user_id, product_id_to_quantity: Dict[str, int]):
         self.order_service.place_order(user_id, product_id_to_quantity)
 
+    def get_user(self, user_id):
+        with self.session:
+            return self.user_repository.get_by_id(user_id, self.session)
+
+    def get_products(self, product_ids: list[str]):
+        with self.session:
+            products = [
+                self.product_repository.get_by_id(product_id, self.session)
+                for product_id in product_ids
+            ]
+            return products
+
+    def get_most_recent_order(self, user_id: str) -> Optional[Order]:
+        with self.session:
+            orders = self.order_repository.get_by_user_id(user_id, self.session)
+            if not orders:
+                return None
+            return orders[0]
+
     def assert_place_order_error(
         self, user_id, product_id_to_quantity: Dict[str, int], expected_err_msg: str
     ):
         product_ids = list(product_id_to_quantity.keys())
 
-        def fetch_order_related_data():
-            with self.session:
-                user = self.user_repository.get_by_id(user_id, self.session)
-                products = [
-                    self.product_repository.get_by_id(product_id, self.session)
-                    for product_id in product_ids
-                ]
-                total_num_of_orders = len(
-                    self.order_repository.get_by_user_id(user_id, self.session)
-                )
-                return (user, products, total_num_of_orders)
+        def fetch_user_products_and_order():
+            user = self.get_user(user_id)
+            products = self.get_products(product_ids)
+            order_or_none = self.get_most_recent_order(user_id)
+            return (user, products, order_or_none)
 
-        user, products, total_num_of_orders = fetch_order_related_data()
+        original_tuples = fetch_user_products_and_order()
 
         with pytest.raises(PlaceOrderError) as exc_info:
             self.place_order(user_id, product_id_to_quantity)
@@ -62,10 +78,8 @@ class OrderServiceFixture(Generic[S]):
         assert expected_err_msg == str(exc_info.value)
 
         # make sure no side effects:
-        new_user, new_products, new_total_num_of_orders = fetch_order_related_data()
-        assert user == new_user
-        assert products == new_products
-        assert total_num_of_orders == new_total_num_of_orders
+        new_tuples = fetch_user_products_and_order()
+        assert original_tuples == new_tuples
 
 
 @pytest.fixture
