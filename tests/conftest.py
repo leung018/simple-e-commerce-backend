@@ -7,7 +7,7 @@ from app.repositories.postgres import PostgresSession
 
 
 @pytest.fixture
-def postgres_session() -> Generator[PostgresSession, None, None]:
+def repository_session() -> Generator[PostgresSession, None, None]:
     session = get_repository_session()
     with session:
         set_up_tables(session)
