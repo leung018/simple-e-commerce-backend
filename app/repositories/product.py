@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, SupportsAbs
+from typing import Generic, TypeVar
 
 from app.models.product import Product
 from app.repositories.err import EntityNotFoundError
@@ -8,7 +8,7 @@ from app.repositories.postgres import (
 )
 from app.repositories.session import RepositorySession
 
-S = TypeVar("S", bound=SupportsAbs[RepositorySession])
+S = TypeVar("S", bound=RepositorySession)
 
 
 class ProductRepositoryInterface(ABC, Generic[S]):

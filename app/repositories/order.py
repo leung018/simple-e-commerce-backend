@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import List, Generic, TypeVar, SupportsAbs
+from typing import List, Generic, TypeVar
 
 from app.models.order import Order
 from app.repositories.postgres import PostgresSession
 from app.repositories.session import RepositorySession
 
-S = TypeVar("S", bound=SupportsAbs[RepositorySession])
+S = TypeVar("S", bound=RepositorySession)
 
 
 class OrderRepositoryInterface(ABC, Generic[S]):

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Generic, SupportsAbs, TypeVar
+from typing import Dict, Generic, TypeVar
 import pytest
 
 from app.repositories.err import EntityNotFoundError
@@ -13,7 +13,7 @@ from app.repositories.user import PostgresUserRepository, UserRepositoryInterfac
 from app.services.order import OrderService, PlaceOrderError
 from tests.models.constructor import new_product, new_user
 
-S = TypeVar("S", bound=SupportsAbs[RepositorySession])
+S = TypeVar("S", bound=RepositorySession)
 
 
 @dataclass
@@ -87,7 +87,7 @@ def order_service_fixture(postgres_session):
 
 
 def test_should_raise_entity_not_found_if_user_id_not_valid(
-    order_service_fixture: OrderServiceFixture[RepositorySession],
+    order_service_fixture: OrderServiceFixture,
 ):
     product = new_product()
     order_service_fixture.save_products([product])
@@ -97,7 +97,7 @@ def test_should_raise_entity_not_found_if_user_id_not_valid(
 
 
 def test_should_raise_entity_not_found_if_product_id_not_valid(
-    order_service_fixture: OrderServiceFixture[RepositorySession],
+    order_service_fixture: OrderServiceFixture,
 ):
     user = new_user()
     order_service_fixture.save_user(user)
@@ -107,7 +107,7 @@ def test_should_raise_entity_not_found_if_product_id_not_valid(
 
 
 def test_should_raise_error_if_total_purchase_quantity_is_not_greater_than_0(
-    order_service_fixture: OrderServiceFixture[RepositorySession],
+    order_service_fixture: OrderServiceFixture,
 ):
     product1 = new_product(id="p1")
     product2 = new_product(id="p2")
@@ -125,7 +125,7 @@ def test_should_raise_error_if_total_purchase_quantity_is_not_greater_than_0(
 
 
 def test_should_raise_error_if_purchase_quantity_is_less_than_product_quantity(
-    order_service_fixture: OrderServiceFixture[RepositorySession],
+    order_service_fixture: OrderServiceFixture,
 ):
 
     product = new_product(quantity=5, price=1)
@@ -140,7 +140,7 @@ def test_should_raise_error_if_purchase_quantity_is_less_than_product_quantity(
 
 
 def test_should_raise_error_if_user_balance_is_not_enough_to_buy(
-    order_service_fixture: OrderServiceFixture[RepositorySession],
+    order_service_fixture: OrderServiceFixture,
 ):
     product1 = new_product("p1", quantity=99, price=2)
     product2 = new_product("p2", quantity=99, price=3)

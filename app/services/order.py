@@ -1,11 +1,11 @@
-from typing import Dict, SupportsAbs, TypeVar, Generic
+from typing import Dict, TypeVar, Generic
 from app.err import MyValueError
 from app.repositories.order import OrderRepositoryInterface
 from app.repositories.product import ProductRepositoryInterface
 from app.repositories.session import RepositorySession
 from app.repositories.user import UserRepositoryInterface
 
-S = TypeVar("S", bound=SupportsAbs[RepositorySession])
+S = TypeVar("S", bound=RepositorySession)
 
 _QUANTITY_NOT_POSITIVE_ERROR_MSG = "purchasing quantity must be greater than 0"
 
@@ -33,7 +33,7 @@ class OrderService(Generic[S]):
             if not product_id_to_quantity:
                 raise PlaceOrderError(_QUANTITY_NOT_POSITIVE_ERROR_MSG)
 
-            total_price = 0
+            total_price: float = 0
             for product_id in product_id_to_quantity:
                 product = self._product_repository.get_by_id(product_id, self._session)
                 purchase_quantity = product_id_to_quantity[product_id]
