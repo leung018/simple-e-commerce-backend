@@ -28,6 +28,20 @@ def test_should_committed_changes_persist_to_other_session_block(
         assert len(order_repository.get_by_user_id("u1", postgres_session)) == 1
 
 
+def test_should_able_to_rollback_change_in_the_same_session_block(
+    postgres_session: PostgresSession,
+):
+    order = new_order(user_id="u1")
+    with postgres_session:
+        order_repository = PostgresOrderRepository()
+        order_repository.add(order, postgres_session)
+        assert len(order_repository.get_by_user_id("u1", postgres_session)) == 1
+
+        postgres_session.rollback()
+
+        assert len(order_repository.get_by_user_id("u1", postgres_session)) == 0
+
+
 def test_should_rollback_on_error(postgres_session: PostgresSession):
     class MyException(Exception):
         pass
