@@ -1,14 +1,10 @@
 import pytest
-from app.models.product import Product
 from app.repositories.err import EntityNotFoundError
 from app.repositories.postgres import PostgresSession
 from app.repositories.product import (
     PostgresProductRepository,
 )
-
-
-def new_product(id="p1", name="Hello", category="My category", price=6.7, quantity=5):
-    return Product(id=id, name=name, category=category, price=price, quantity=quantity)
+from tests.models.constructor import new_product
 
 
 def test_should_save_and_get_product(postgres_session: PostgresSession):

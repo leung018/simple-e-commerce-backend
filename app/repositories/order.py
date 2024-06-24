@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import List, Generic, TypeVar, SupportsAbs
+from typing import List, Generic, TypeVar
 
 from app.models.order import Order
 from app.repositories.postgres import PostgresSession
 from app.repositories.session import RepositorySession
 
-S = TypeVar("S", bound=SupportsAbs[RepositorySession])
+S = TypeVar("S", bound=RepositorySession)
 
 
 class OrderRepositoryInterface(ABC, Generic[S]):
@@ -18,7 +18,7 @@ class OrderRepositoryInterface(ABC, Generic[S]):
         pass
 
 
-class PostgresOrderRepository:
+class PostgresOrderRepository(OrderRepositoryInterface):
     CREATE_TABLES_IF_NOT_EXISTS = """
         CREATE TABLE IF NOT EXISTS orders (
             id VARCHAR(36) PRIMARY KEY,
