@@ -15,6 +15,9 @@ class OrderRepositoryInterface(ABC, Generic[S]):
 
     @abstractmethod
     def get_by_user_id(self, user_id: str, session: S) -> List[Order]:
+        """
+        Retrieves a list of orders sorted such that the most recently created order appears first.
+        """
         pass
 
 
@@ -22,7 +25,8 @@ class PostgresOrderRepository(OrderRepositoryInterface):
     CREATE_TABLES_IF_NOT_EXISTS = """
         CREATE TABLE IF NOT EXISTS orders (
             id VARCHAR(36) PRIMARY KEY,
-            user_id VARCHAR(36) NOT NULL
+            user_id VARCHAR(36) NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS order_products (
             order_id VARCHAR(36) NOT NULL,
@@ -49,9 +53,13 @@ class PostgresOrderRepository(OrderRepositoryInterface):
     def get_by_user_id(self, user_id: str, session: PostgresSession) -> List[Order]:
         orders = []
         with session.get_cursor() as cursor:
-            cursor.execute("SELECT id FROM orders WHERE user_id = %s", (user_id,))
+            cursor.execute(
+                "SELECT id, created_at FROM orders WHERE user_id = %s ORDER BY created_at DESC;",
+                (user_id,),
+            )
             order_rows = cursor.fetchall()
-            for (order_id,) in order_rows:
+            print(order_rows)
+            for order_id, _ in order_rows:
                 cursor.execute(
                     "SELECT product_id FROM order_products WHERE order_id = %s",
                     (order_id,),
