@@ -53,7 +53,7 @@ class OrderService(Generic[S]):
     def _fetch_user(self, user_id):
         return self._user_repository.get_by_id(user_id, self._session)
 
-    def _process_products(self, product_id_to_quantity: dict[str, int]) -> int:
+    def _process_products(self, product_id_to_quantity: dict[str, int]) -> float:
         """
         Return total price of this order
         """
@@ -74,7 +74,7 @@ class OrderService(Generic[S]):
         product.quantity -= purchase_quantity
         self._product_repository.save(product, self._session)
 
-    def _make_payment(self, user: User, total_price: int):
+    def _make_payment(self, user: User, total_price: float):
         if total_price > user.balance:
             raise PlaceOrderError("not enough balance")
 

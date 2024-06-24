@@ -175,6 +175,7 @@ def test_should_make_order_successfully_if_balance_is_enough_to_buy(
 
     # Check order is made
     order = order_service_fixture.get_most_recent_order(user.id)
+    assert order is not None
     assert order.user_id == user.id
     assert order.product_ids == frozenset([product1.id, product2.id])
 
@@ -194,4 +195,5 @@ def test_should_order_id_generated_are_different_each_time(
     order_service_fixture.place_order(user.id, {product.id: 1})
     order2 = order_service_fixture.get_most_recent_order(user.id)
 
+    assert order1 is not None and order2 is not None
     assert order1.id != order2.id
