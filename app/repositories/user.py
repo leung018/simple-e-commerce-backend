@@ -41,6 +41,8 @@ class PostgresUserRepository(UserRepositoryInterface):
                 """
                 INSERT INTO users (id, balance)
                 VALUES (%s, %s)
+                ON CONFLICT (id)
+                DO UPDATE SET balance = EXCLUDED.balance;
             """,
                 (user.id, user.balance),
             )
