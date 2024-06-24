@@ -45,6 +45,12 @@ class PostgresProductRepository(ProductRepositoryInterface):
                 """
                     INSERT INTO products (id, name, category, price, quantity)
                     VALUES (%s, %s, %s, %s, %s)
+                    ON CONFLICT (id) 
+                    DO UPDATE SET 
+                        name = EXCLUDED.name,
+                        category = EXCLUDED.category,
+                        price = EXCLUDED.price,
+                        quantity = EXCLUDED.quantity;
                 """,
                 (
                     product.id,

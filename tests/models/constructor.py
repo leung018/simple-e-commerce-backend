@@ -3,7 +3,9 @@ from app.models.product import Product
 from app.models.user import User
 
 
-def new_order(id="o1", user_id="u1", product_ids: tuple[str, ...] = ("p1", "p2")):
+def new_order(
+    id="o1", user_id="u1", product_ids: frozenset[str] = frozenset(["p1", "p2"])
+):
     Order(id="o1", user_id="u1", product_ids=product_ids)
     return Order(id, user_id, product_ids)
 
