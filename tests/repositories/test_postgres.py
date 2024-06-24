@@ -1,5 +1,5 @@
 import pytest
-from app.repositories.postgres import PostgresSession, new_postgres_context_from_env
+from app.repositories.postgres import PostgresSession, new_postgres_config_from_env
 from app.repositories.order import PostgresOrderRepository
 from tests.models.constructor import new_order
 
@@ -15,7 +15,7 @@ def test_should_session_not_commit_work_by_default(postgres_session: PostgresSes
         assert len(order_repository.get_by_user_id("u1", postgres_session)) == 0
 
 
-def test_should_session_committed_changes_persist_to_other_session(
+def test_should_committed_changes_persist_to_other_session_block(
     postgres_session: PostgresSession,
 ):
     order = new_order(user_id="u1")
@@ -26,6 +26,20 @@ def test_should_session_committed_changes_persist_to_other_session(
 
     with postgres_session:
         assert len(order_repository.get_by_user_id("u1", postgres_session)) == 1
+
+
+def test_should_able_to_rollback_change_in_the_same_session_block(
+    postgres_session: PostgresSession,
+):
+    order = new_order(user_id="u1")
+    with postgres_session:
+        order_repository = PostgresOrderRepository()
+        order_repository.add(order, postgres_session)
+        assert len(order_repository.get_by_user_id("u1", postgres_session)) == 1
+
+        postgres_session.rollback()
+
+        assert len(order_repository.get_by_user_id("u1", postgres_session)) == 0
 
 
 def test_should_rollback_on_error(postgres_session: PostgresSession):
