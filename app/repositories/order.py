@@ -16,7 +16,10 @@ class OrderRepositoryInterface(ABC, Generic[S]):
     @abstractmethod
     def get_by_user_id(self, user_id: str, session: S) -> list[Order]:
         """
-        Retrieves a list of orders sorted such that the most recently created order appears first.
+        Retrieves a list of orders, sorted such that the most recently created order appears first.
+
+        Note: It might be possible to specify the preferred way of sorting using the Specification Pattern,
+        but for the current project scope, the existing arrangement is sufficient.
         """
         pass
 
