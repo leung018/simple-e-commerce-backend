@@ -147,3 +147,28 @@ def test_should_raise_error_if_user_balance_is_not_enough_to_buy(
     order_service_fixture.assert_place_order_error(
         user.id, {"p1": 2, "p2": 5}, "not enough balance"
     )
+
+
+def test_should_make_order_successfully_if_balance_is_enough_to_buy(
+    order_service_fixture: OrderServiceFixture,
+):
+    product1 = new_product("p1", quantity=50, price=2)
+    product2 = new_product("p2", quantity=30, price=3)
+    # total price: 2*2 + 3*5 = 19
+
+    user = new_user(balance=19)
+
+    order_service_fixture.save_user(user)
+    order_service_fixture.save_products([product1, product2])
+
+    order_service_fixture.place_order(user.id, {"p1": 2, "p2": 5})
+
+    # Check user balance
+    assert order_service_fixture.get_user(user.id).balance == 0
+
+    # Check product quantities
+    [new_product1, new_product2] = order_service_fixture.get_products(
+        [product1.id, product2.id]
+    )
+    assert new_product1.quantity == 48
+    assert new_product2.quantity == 25

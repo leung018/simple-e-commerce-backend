@@ -45,5 +45,13 @@ class OrderService(Generic[S]):
                     )
                 total_price += purchase_quantity * product.price
 
+                product.quantity -= purchase_quantity
+                self._product_repository.save(product, self._session)
+
             if total_price > user.balance:
                 raise PlaceOrderError("not enough balance")
+
+            user.balance -= total_price
+            self._user_repository.save(user, self._session)
+
+            self._session.commit()
