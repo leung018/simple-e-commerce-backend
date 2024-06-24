@@ -172,3 +172,8 @@ def test_should_make_order_successfully_if_balance_is_enough_to_buy(
     )
     assert new_product1.quantity == 48
     assert new_product2.quantity == 25
+
+    # Check order is made
+    order = order_service_fixture.get_most_recent_order(user.id)
+    assert order.user_id == user.id
+    assert order.product_ids == frozenset([product1.id, product2.id])

@@ -1,5 +1,6 @@
 from typing import Dict, TypeVar, Generic
 from app.err import MyValueError
+from app.models.order import Order
 from app.repositories.order import OrderRepositoryInterface
 from app.repositories.product import ProductRepositoryInterface
 from app.repositories.session import RepositorySession
@@ -53,5 +54,11 @@ class OrderService(Generic[S]):
 
             user.balance -= total_price
             self._user_repository.save(user, self._session)
+            order = Order(
+                id="dummy",  # TODO: change this to auto generated
+                user_id=user.id,
+                product_ids=frozenset(list(product_id_to_quantity)),
+            )
+            self._order_repository.add(order, self._session)
 
             self._session.commit()
