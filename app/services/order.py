@@ -32,7 +32,7 @@ class OrderService(Generic[S]):
         self._session = repository_session
 
     def place_order(self, user_id: str, product_id_to_quantity: dict[str, int]):
-        self._validate_is_not_empty_request(product_id_to_quantity)
+        self._validate_quantities(product_id_to_quantity)
 
         with self._session:
             user = self._fetch_user(user_id)
@@ -42,9 +42,13 @@ class OrderService(Generic[S]):
 
             self._session.commit()
 
-    def _validate_is_not_empty_request(self, product_id_to_quantity: dict[str, int]):
+    def _validate_quantities(self, product_id_to_quantity: dict[str, int]):
         if not product_id_to_quantity:
             raise PlaceOrderError(_QUANTITY_NOT_POSITIVE_ERROR_MSG)
+
+        for _, quantity in product_id_to_quantity.items():
+            if quantity <= 0:
+                raise PlaceOrderError(_QUANTITY_NOT_POSITIVE_ERROR_MSG)
 
     def _fetch_user(self, user_id):
         return self._user_repository.get_by_id(user_id, self._session)
@@ -64,8 +68,6 @@ class OrderService(Generic[S]):
         return total_price
 
     def _update_product_inventory(self, product: Product, purchase_quantity: int):
-        if purchase_quantity <= 0:
-            raise PlaceOrderError(_QUANTITY_NOT_POSITIVE_ERROR_MSG)
         if product.quantity < purchase_quantity:
             raise PlaceOrderError("quantity of product is not enough for your purchase")
 
