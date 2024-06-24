@@ -1,13 +1,14 @@
 from typing import Generator
 import pytest
 
+from app.dependencies import get_repository_session
 from app.repositories.migration import drop_tables, set_up_tables
-from app.repositories.postgres import PostgresSession, new_postgres_config_from_env
+from app.repositories.postgres import PostgresSession
 
 
 @pytest.fixture
 def postgres_session() -> Generator[PostgresSession, None, None]:
-    session = PostgresSession(new_postgres_config_from_env())
+    session = get_repository_session()
     with session:
         set_up_tables(session)
         session.commit()
