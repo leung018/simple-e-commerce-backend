@@ -1,4 +1,5 @@
 from typing import Dict, TypeVar, Generic
+from uuid import uuid4
 from app.err import MyValueError
 from app.models.order import Order
 from app.repositories.order import OrderRepositoryInterface
@@ -55,7 +56,7 @@ class OrderService(Generic[S]):
             user.balance -= total_price
             self._user_repository.save(user, self._session)
             order = Order(
-                id="dummy",  # TODO: change this to auto generated
+                id=str(uuid4()),
                 user_id=user.id,
                 product_ids=frozenset(list(product_id_to_quantity)),
             )

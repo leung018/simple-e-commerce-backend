@@ -177,3 +177,21 @@ def test_should_make_order_successfully_if_balance_is_enough_to_buy(
     order = order_service_fixture.get_most_recent_order(user.id)
     assert order.user_id == user.id
     assert order.product_ids == frozenset([product1.id, product2.id])
+
+
+def test_should_order_id_generated_are_different_each_time(
+    order_service_fixture: OrderServiceFixture,
+):
+    product = new_product(quantity=10, price=1)
+    user = new_user(balance=100)
+
+    order_service_fixture.save_user(user)
+    order_service_fixture.save_products([product])
+
+    order_service_fixture.place_order(user.id, {product.id: 1})
+    order1 = order_service_fixture.get_most_recent_order(user.id)
+
+    order_service_fixture.place_order(user.id, {product.id: 1})
+    order2 = order_service_fixture.get_most_recent_order(user.id)
+
+    assert order1.id != order2.id
