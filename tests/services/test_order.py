@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Generic, Optional, TypeVar
+from typing import Generic, Optional, TypeVar
 import pytest
 
 from app.models.order import Order
@@ -37,7 +37,7 @@ class OrderServiceFixture(Generic[S]):
                 self.product_repository.save(product, self.session)
             self.session.commit()
 
-    def place_order(self, user_id, product_id_to_quantity: Dict[str, int]):
+    def place_order(self, user_id, product_id_to_quantity: dict[str, int]):
         self.order_service.place_order(user_id, product_id_to_quantity)
 
     def get_user(self, user_id):
@@ -60,7 +60,7 @@ class OrderServiceFixture(Generic[S]):
             return orders[0]
 
     def assert_place_order_error(
-        self, user_id, product_id_to_quantity: Dict[str, int], expected_err_msg: str
+        self, user_id, product_id_to_quantity: dict[str, int], expected_err_msg: str
     ):
         product_ids = list(product_id_to_quantity.keys())
 
