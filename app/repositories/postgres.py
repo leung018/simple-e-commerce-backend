@@ -31,6 +31,7 @@ class PostgresSession(RepositorySession):
 
     def __enter__(self):
         self._conn = self._new_postgres_conn()
+        self._conn.isolation_level = psycopg.IsolationLevel.SERIALIZABLE
         return super().__enter__()
 
     def __exit__(self, *args):
