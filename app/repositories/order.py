@@ -56,7 +56,9 @@ class PostgresOrderRepository(OrderRepositoryInterface):
                     "SELECT product_id FROM order_products WHERE order_id = %s",
                     (order_id,),
                 )
-                product_ids = tuple([product_id for (product_id,) in cursor.fetchall()])
+                product_ids = frozenset(
+                    [product_id for (product_id,) in cursor.fetchall()]
+                )
                 orders.append(
                     Order(id=order_id, user_id=user_id, product_ids=product_ids)
                 )
