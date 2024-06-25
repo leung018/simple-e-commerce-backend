@@ -16,6 +16,10 @@ class RegisterUserError(MyValueError):
     pass
 
 
+class GetAccessTokenError(MyValueError):
+    pass
+
+
 class AuthService(Generic[S]):
     def __init__(
         self,
@@ -38,7 +42,7 @@ class AuthService(Generic[S]):
             self._auth_repository.add(
                 AuthRecord(
                     user_id=user.id,
-                    hashed_password="TODO",
+                    hashed_password=auth_input.password,  # TODO: hash it
                     username=auth_input.username,
                 ),
                 self._session,
@@ -57,7 +61,12 @@ class AuthService(Generic[S]):
             return None
 
     def get_access_token(self, auth_input: AuthInput) -> str:
-        raise NotImplementedError
+        with self._session:
+            auth_record = self._get_auth_record_by_username(auth_input.username)
+
+            if not auth_record or auth_record.hashed_password != auth_input.password:
+                raise GetAccessTokenError("username or password is not correct")
+        return ""
 
     def decode_user_id_from_token(self, token: str) -> str:
         raise NotImplementedError

@@ -10,7 +10,7 @@ from app.repositories.auth import AuthRecordRepositoryInterface
 from app.repositories.err import EntityNotFoundError
 from app.repositories.session import RepositorySession
 from app.repositories.user import UserRepositoryInterface
-from app.services.auth import AuthService, RegisterUserError
+from app.services.auth import AuthService, GetAccessTokenError, RegisterUserError
 from tests.models.constructor import new_auth_input
 
 
@@ -26,6 +26,9 @@ class AuthServiceFixture(Generic[S]):
 
     def register_user(self, auth_input: AuthInput):
         self.auth_service.register_user(auth_input)
+
+    def get_access_token(self, auth_input: AuthInput):
+        return self.auth_service.get_access_token(auth_input)
 
     def get_user_by_username(self, username: str):
         with self.session:
@@ -69,3 +72,23 @@ def test_should_not_allow_register_user_with_existing_username(
 
     # using different username can be success
     auth_service_fixture.register_user(new_auth_input(username="uname2"))
+
+
+def test_should_not_able_to_get_access_token_if_username_or_password_not_match(
+    auth_service_fixture: AuthServiceFixture,
+):
+    auth_service_fixture.register_user(
+        new_auth_input(username="uname", password="password")
+    )
+
+    with pytest.raises(GetAccessTokenError) as exc_info:
+        auth_service_fixture.get_access_token(
+            new_auth_input(username="unaem", password="password")
+        )
+    assert "username or password is not correct" == str(exc_info.value)
+
+    with pytest.raises(GetAccessTokenError) as exc_info:
+        auth_service_fixture.get_access_token(
+            new_auth_input(username="uname", password="passwodr")
+        )
+    assert "username or password is not correct" == str(exc_info.value)
