@@ -82,14 +82,12 @@ class OrderService(Generic[S]):
         self._user_repository.save(user, self._session)
 
     def _record_order(self, user_id: str, product_id_to_quantity: dict[str, int]):
-        order = Order(
+        order = Order.create(
             id=str(uuid4()),
             user_id=user_id,
-            purchase_info=PurchaseInfo(
-                tuple(
-                    OrderItem(product_id, quantity)
-                    for product_id, quantity, in product_id_to_quantity.items()
-                )
+            order_items=tuple(
+                OrderItem(product_id, quantity)
+                for product_id, quantity, in product_id_to_quantity.items()
             ),
         )
         self._order_repository.add(order, self._session)

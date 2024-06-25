@@ -11,7 +11,7 @@ def new_order(
         OrderItem(product_id="p2", quantity=3),
     ),
 ):
-    return Order(id=id, user_id=user_id, purchase_info=PurchaseInfo(order_items))
+    return Order.create(id, user_id, order_items)
 
 
 def new_product(id="p1", name="Hello", category="My category", price=6.7, quantity=5):

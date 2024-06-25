@@ -71,8 +71,7 @@ class PostgresOrderRepository(OrderRepositoryInterface):
                     OrderItem(product_id, quantity)
                     for product_id, quantity in cursor.fetchall()
                 )
-                purchase_info = PurchaseInfo(order_items)
                 orders.append(
-                    Order(id=order_id, user_id=user_id, purchase_info=purchase_info)
+                    Order.create(id=order_id, user_id=user_id, order_items=order_items)
                 )
             return orders

@@ -32,3 +32,7 @@ class Order:
     id: str
     user_id: str
     purchase_info: PurchaseInfo
+
+    @classmethod
+    def create(cls, id: str, user_id: str, order_items: tuple[OrderItem, ...]):
+        return Order(id, user_id, PurchaseInfo(order_items))
