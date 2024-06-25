@@ -7,7 +7,7 @@ from app.dependencies import (
     get_product_repository,
     get_user_repository,
 )
-from app.models.order import Order
+from app.models.order import Order, OrderItem
 from app.models.product import Product
 from app.models.user import User
 from app.repositories.order import OrderRepositoryInterface
@@ -181,7 +181,7 @@ def test_should_make_order_successfully_if_balance_is_enough_to_buy(
     order = order_service_fixture.get_most_recent_order(user.id)
     assert order is not None
     assert order.user_id == user.id
-    assert order.product_ids == frozenset([product1.id, product2.id])
+    assert order.purchase_info.order_items == (OrderItem("p1", 2), OrderItem("p2", 5))
 
 
 def test_should_order_id_generated_are_different_each_time(

@@ -1,7 +1,7 @@
 from typing import TypeVar, Generic
 from uuid import uuid4
 from app.err import MyValueError
-from app.models.order import Order
+from app.models.order import Order, OrderItem, PurchaseInfo
 from app.models.product import Product
 from app.models.user import User
 from app.repositories.order import OrderRepositoryInterface
@@ -38,7 +38,7 @@ class OrderService(Generic[S]):
             user = self._fetch_user(user_id)
             total_price = self._process_products(product_id_to_quantity)
             self._make_payment(user, total_price)
-            self._record_order(user.id, frozenset(list(product_id_to_quantity)))
+            self._record_order(user.id, product_id_to_quantity)
 
             self._session.commit()
 
@@ -81,10 +81,15 @@ class OrderService(Generic[S]):
         user.balance -= total_price
         self._user_repository.save(user, self._session)
 
-    def _record_order(self, user_id: str, product_ids: frozenset[str]):
+    def _record_order(self, user_id: str, product_id_to_quantity: dict[str, int]):
         order = Order(
             id=str(uuid4()),
             user_id=user_id,
-            product_ids=product_ids,
+            purchase_info=PurchaseInfo(
+                tuple(
+                    OrderItem(product_id, quantity)
+                    for product_id, quantity, in product_id_to_quantity.items()
+                )
+            ),
         )
         self._order_repository.add(order, self._session)
