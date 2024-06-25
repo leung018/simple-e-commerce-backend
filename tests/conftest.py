@@ -2,17 +2,13 @@ from typing import Generator
 import pytest
 
 from app.dependencies import get_repository_session
-from app.repositories.migration import drop_tables, set_up_tables
+from app.repositories.migration import drop_tables, setup_tables
 from app.repositories.postgres import PostgresSession
 
 
 @pytest.fixture
 def repository_session() -> Generator[PostgresSession, None, None]:
     session = get_repository_session()
-    with session:
-        set_up_tables(session)
-        session.commit()
+    setup_tables(session)
     yield session
-    with session:
-        drop_tables(session)
-        session.commit()
+    drop_tables(session)
