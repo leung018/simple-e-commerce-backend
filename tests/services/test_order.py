@@ -2,16 +2,20 @@ from dataclasses import dataclass
 from typing import Generic, Optional, TypeVar
 import pytest
 
+from app.dependencies import (
+    get_order_repository,
+    get_product_repository,
+    get_user_repository,
+)
 from app.models.order import Order
 from app.models.product import Product
 from app.models.user import User
-from app.repositories.order import OrderRepositoryInterface, PostgresOrderRepository
+from app.repositories.order import OrderRepositoryInterface
 from app.repositories.product import (
-    PostgresProductRepository,
     ProductRepositoryInterface,
 )
 from app.repositories.session import RepositorySession
-from app.repositories.user import PostgresUserRepository, UserRepositoryInterface
+from app.repositories.user import UserRepositoryInterface
 from app.services.order import OrderService, PlaceOrderError
 from tests.models.constructor import new_product, new_user
 
@@ -83,19 +87,19 @@ class OrderServiceFixture(Generic[S]):
 
 
 @pytest.fixture
-def order_service_fixture(postgres_session):
-    user_repository = PostgresUserRepository()
-    product_repository = PostgresProductRepository()
-    order_repository = PostgresOrderRepository()
+def order_service_fixture(repository_session):
+    user_repository = get_user_repository()
+    product_repository = get_product_repository()
+    order_repository = get_order_repository()
     order_service = OrderService(
-        user_repository, product_repository, order_repository, postgres_session
+        user_repository, product_repository, order_repository, repository_session
     )
     return OrderServiceFixture(
         order_service,
         user_repository,
         product_repository,
         order_repository,
-        postgres_session,
+        repository_session,
     )
 
 
