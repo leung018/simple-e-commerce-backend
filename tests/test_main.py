@@ -40,4 +40,10 @@ def test_should_create_and_get_order(repository_session: RepositorySession):
     )
     assert response.status_code == 201
 
-    # TODO
+    response = client.get("/orders")
+    assert response.status_code == 200
+
+    assert len(response.json()) == 1
+    order_response = response.json()[0]
+    assert isinstance(order_response["id"], str)
+    assert order_response["items"] == [{"id": product.id, "purchase_quantity": 5}]
