@@ -75,7 +75,7 @@ class AuthService(Generic[S]):
                 raise GetAccessTokenError("username or password is not correct")
         return ""
 
-    def decode_user_id_from_token(self, token: str) -> str:
+    def decode_user_id(self, access_token: str) -> str:
         return ""
 
 

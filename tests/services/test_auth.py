@@ -31,7 +31,7 @@ class AuthServiceFixture(Generic[S]):
         return self.auth_service.get_access_token(auth_input)
 
     def decode_user_id(self, access_token: str) -> str:
-        return self.auth_service.decode_user_id_from_token(access_token)
+        return self.auth_service.decode_user_id(access_token)
 
     def get_user_by_username(self, username: str):
         with self.session:
