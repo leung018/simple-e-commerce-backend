@@ -1,3 +1,4 @@
+from app.models.auth import AuthRecord
 from app.models.order import Order, OrderItem, PurchaseInfo
 from app.models.product import Product
 from app.models.user import User
@@ -20,3 +21,9 @@ def new_product(id="p1", name="Hello", category="My category", price=6.7, quanti
 
 def new_user(id="u1", balance=100.2):
     return User(id=id, balance=balance)
+
+
+def new_auth_record(user_id="u1", username="uname", hashed_password="password"):
+    return AuthRecord(
+        user_id=user_id, username=username, hashed_password=hashed_password
+    )
