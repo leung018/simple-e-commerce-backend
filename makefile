@@ -9,8 +9,10 @@ run-db:
 	docker compose up -d
 clean-db:
 	docker compose down -v
-test:
+test: # run-db first in local development. Don't add run-db directly here becasue no need for github action
 	${BIN_DIR}pytest
+run-server: run-db
+	${PATH_PREFIX}uvicorn app.main:app --reload
 format-check:
 	${BIN_DIR}black . --check
 format:
