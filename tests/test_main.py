@@ -7,6 +7,8 @@ from app.dependencies import (
     get_user_repository,
 )
 from app.main import app
+from app.models.product import Product
+from app.models.user import User
 from app.repositories.session import RepositorySession
 from app.routers.orders import DUMMY_USER_ID
 from tests.models.constructor import new_product, new_user
@@ -22,24 +24,19 @@ def override_repository_session_dependency(repository_session):
     app.dependency_overrides[get_repository_session] = my_get_repository_session
 
 
-def test_should_create_and_get_order(repository_session: RepositorySession):
-    user_repository = get_user_repository()
-    product_repository = get_product_repository()
-
+def test_should_place_order_and_get_placed_order(repository_session: RepositorySession):
     product = new_product(quantity=10, price=1)
+    create_product(product, repository_session)
 
-    with repository_session:
-        user_repository.save(
-            new_user(id=DUMMY_USER_ID, balance=100), repository_session
-        )
-        product_repository.save(product, repository_session)
-        repository_session.commit()
+    create_user(new_user(id=DUMMY_USER_ID, balance=100), repository_session)
 
+    # place order api
     response = client.post(
         "/orders", json={"order_items": [{"product_id": product.id, "quantity": 5}]}
     )
     assert response.status_code == 201
 
+    # get orders api
     response = client.get("/orders")
     assert response.status_code == 200
 
@@ -47,3 +44,17 @@ def test_should_create_and_get_order(repository_session: RepositorySession):
     order_response = response.json()[0]
     assert isinstance(order_response["id"], str)
     assert order_response["items"] == [{"id": product.id, "purchase_quantity": 5}]
+
+
+def create_product(product: Product, repository_session: RepositorySession):
+    product_repository = get_product_repository()
+    with repository_session:
+        product_repository.save(product, repository_session)
+        repository_session.commit()
+
+
+def create_user(user: User, repository_session: RepositorySession):
+    user_repository = get_user_repository()
+    with repository_session:
+        user_repository.save(user, repository_session)
+        repository_session.commit()
