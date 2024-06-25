@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 import pytest
 
 from app.dependencies import (
+    get_order_repository,
     get_product_repository,
     get_repository_session,
     get_user_repository,
@@ -42,8 +43,14 @@ def test_should_place_order_and_get_placed_order(repository_session: RepositoryS
 
     assert len(response.json()) == 1
     order_response = response.json()[0]
-    assert isinstance(order_response["id"], str)
     assert order_response["items"] == [{"id": product.id, "purchase_quantity": 5}]
+
+    # check order id in response same as the one stored in repository
+    with repository_session:
+        order_in_repo = get_order_repository().get_by_user_id(
+            DUMMY_USER_ID, repository_session
+        )[0]
+        assert order_response["id"] == order_in_repo.id
 
 
 def create_product(product: Product, repository_session: RepositorySession):
