@@ -1,5 +1,5 @@
 from app.models.auth import AuthInput, AuthRecord
-from app.models.order import Order, OrderItem, PurchaseInfo
+from app.models.order import Order, OrderItem
 from app.models.product import Product
 from app.models.user import User
 
