@@ -62,7 +62,6 @@ class PostgresOrderRepository(OrderRepositoryInterface):
                 (user_id,),
             )
             order_rows = cursor.fetchall()
-            print(order_rows)
             for order_id, _ in order_rows:
                 cursor.execute(
                     "SELECT product_id, quantity FROM order_items WHERE order_id = %s",
