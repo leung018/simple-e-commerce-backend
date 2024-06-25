@@ -1,12 +1,19 @@
-from typing import Generic, TypeVar
+from typing import Generic, Optional, TypeVar
+from uuid import uuid4
 
+from app.err import MyValueError
 from app.models.auth import AuthInput, AuthRecord
 from app.models.user import USER_INITIAL_BALANCE, User
 from app.repositories.auth import AuthRecordRepositoryInterface
+from app.repositories.err import EntityNotFoundError
 from app.repositories.session import RepositorySession
 from app.repositories.user import UserRepositoryInterface
 
 S = TypeVar("S", bound=RepositorySession)
+
+
+class RegisterUserError(MyValueError):
+    pass
 
 
 class AuthService(Generic[S]):
@@ -22,6 +29,11 @@ class AuthService(Generic[S]):
 
     def register_user(self, auth_input: AuthInput):
         with self._session:
+            if self._get_auth_record_by_username(auth_input.username):
+                raise RegisterUserError(
+                    "username: {} already exists".format(auth_input.username)
+                )
+
             user = self._create_new_user()
             self._auth_repository.add(
                 AuthRecord(
@@ -34,9 +46,15 @@ class AuthService(Generic[S]):
             self._session.commit()
 
     def _create_new_user(self):
-        user = User(id="TODO", balance=USER_INITIAL_BALANCE)
+        user = User(id=str(uuid4()), balance=USER_INITIAL_BALANCE)
         self._user_repository.save(user, self._session)
         return user
+
+    def _get_auth_record_by_username(self, username: str) -> Optional[AuthRecord]:
+        try:
+            return self._auth_repository.get_by_username(username, self._session)
+        except EntityNotFoundError:
+            return None
 
     def get_access_token(self, auth_input: AuthInput) -> str:
         raise NotImplementedError

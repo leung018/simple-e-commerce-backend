@@ -7,9 +7,10 @@ from app.dependencies import get_auth_record_repository, get_user_repository
 from app.models.auth import AuthInput
 from app.models.user import USER_INITIAL_BALANCE
 from app.repositories.auth import AuthRecordRepositoryInterface
+from app.repositories.err import EntityNotFoundError
 from app.repositories.session import RepositorySession
 from app.repositories.user import UserRepositoryInterface
-from app.services.auth import AuthService
+from app.services.auth import AuthService, RegisterUserError
 from tests.models.constructor import new_auth_input
 
 
@@ -56,3 +57,15 @@ def test_should_register_user_create_new_user_with_initial_balance(
         auth_service_fixture.get_user_by_username("uname").balance
         == USER_INITIAL_BALANCE
     )
+
+
+def test_should_not_allow_register_user_with_existing_username(
+    auth_service_fixture: AuthServiceFixture,
+):
+    auth_service_fixture.register_user(new_auth_input(username="uname"))
+    with pytest.raises(RegisterUserError) as exc_info:
+        auth_service_fixture.register_user(new_auth_input(username="uname"))
+    assert "username: uname already exists" == str(exc_info.value)
+
+    # using different username can be success
+    auth_service_fixture.register_user(new_auth_input(username="uname2"))
