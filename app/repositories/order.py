@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
-from app.models.order import Order
+from app.models.order import Order, OrderItem, PurchaseInfo
 from app.repositories.postgres import PostgresSession
 from app.repositories.session import RepositorySession
 
@@ -31,14 +31,15 @@ class PostgresOrderRepository(OrderRepositoryInterface):
             user_id VARCHAR(36) NOT NULL,
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
-        CREATE TABLE IF NOT EXISTS order_products (
+        CREATE TABLE IF NOT EXISTS order_items (
             order_id VARCHAR(36) NOT NULL,
             product_id VARCHAR(36) NOT NULL,
+            quantity INT NOT NULL,
             PRIMARY KEY (order_id, product_id)
         );
     """
     DROP_TABLES = """
-        DROP TABLE order_products, orders;
+        DROP TABLE order_items, orders;
     """
 
     def add(self, order: Order, session: PostgresSession):
@@ -47,10 +48,10 @@ class PostgresOrderRepository(OrderRepositoryInterface):
                 "INSERT INTO orders (id, user_id) VALUES (%s, %s)",
                 (order.id, order.user_id),
             )
-            for product_id in order.product_ids:
+            for item in order.purchase_info.order_items:
                 cursor.execute(
-                    "INSERT INTO order_products (order_id, product_id) VALUES (%s, %s)",
-                    (order.id, product_id),
+                    "INSERT INTO order_items (order_id, product_id, quantity) VALUES (%s, %s, %s)",
+                    (order.id, item.product_id, item.quantity),
                 )
 
     def get_by_user_id(self, user_id: str, session: PostgresSession) -> list[Order]:
@@ -64,13 +65,15 @@ class PostgresOrderRepository(OrderRepositoryInterface):
             print(order_rows)
             for order_id, _ in order_rows:
                 cursor.execute(
-                    "SELECT product_id FROM order_products WHERE order_id = %s",
+                    "SELECT product_id, quantity FROM order_items WHERE order_id = %s",
                     (order_id,),
                 )
-                product_ids = frozenset(
-                    [product_id for (product_id,) in cursor.fetchall()]
+                order_items = tuple(
+                    OrderItem(product_id, quantity)
+                    for product_id, quantity in cursor.fetchall()
                 )
+                purchase_info = PurchaseInfo(order_items)
                 orders.append(
-                    Order(id=order_id, user_id=user_id, product_ids=product_ids)
+                    Order(id=order_id, user_id=user_id, purchase_info=purchase_info)
                 )
             return orders
