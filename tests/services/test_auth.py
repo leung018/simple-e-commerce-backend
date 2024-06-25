@@ -5,6 +5,7 @@ import pytest
 
 from app.dependencies import get_auth_record_repository, get_user_repository
 from app.models.auth import AuthInput
+from app.models.user import USER_INITIAL_BALANCE
 from app.repositories.auth import AuthRecordRepositoryInterface
 from app.repositories.session import RepositorySession
 from app.repositories.user import UserRepositoryInterface
@@ -51,4 +52,7 @@ def test_should_register_user_create_new_user_with_initial_balance(
     auth_service_fixture: AuthServiceFixture,
 ):
     auth_service_fixture.register_user(new_auth_input(username="uname"))
-    assert auth_service_fixture.get_user_by_username("uname").balance == 100
+    assert (
+        auth_service_fixture.get_user_by_username("uname").balance
+        == USER_INITIAL_BALANCE
+    )

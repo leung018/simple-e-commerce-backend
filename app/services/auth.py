@@ -1,6 +1,7 @@
 from typing import Generic, TypeVar
 
-from app.models.auth import AuthInput
+from app.models.auth import AuthInput, AuthRecord
+from app.models.user import USER_INITIAL_BALANCE, User
 from app.repositories.auth import AuthRecordRepositoryInterface
 from app.repositories.session import RepositorySession
 from app.repositories.user import UserRepositoryInterface
@@ -15,10 +16,27 @@ class AuthService(Generic[S]):
         auth_repository: AuthRecordRepositoryInterface[S],
         repository_session: S,
     ):
-        pass
+        self._user_repository = user_repository
+        self._auth_repository = auth_repository
+        self._session = repository_session
 
     def register_user(self, auth_input: AuthInput):
-        pass
+        with self._session:
+            user = self._create_new_user()
+            self._auth_repository.add(
+                AuthRecord(
+                    user_id=user.id,
+                    hashed_password="TODO",
+                    username=auth_input.username,
+                ),
+                self._session,
+            )
+            self._session.commit()
+
+    def _create_new_user(self):
+        user = User(id="TODO", balance=USER_INITIAL_BALANCE)
+        self._user_repository.save(user, self._session)
+        return user
 
     def get_access_token(self, auth_input: AuthInput) -> str:
         raise NotImplementedError
