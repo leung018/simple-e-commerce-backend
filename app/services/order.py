@@ -1,7 +1,7 @@
 from typing import TypeVar, Generic
 from uuid import uuid4
 from app.err import MyValueError
-from app.models.order import Order, OrderItem, PurchaseInfo
+from app.models.order import Order, PurchaseInfo
 from app.models.product import Product
 from app.models.user import User
 from app.repositories.order import OrderRepositoryInterface
@@ -10,8 +10,6 @@ from app.repositories.session import RepositorySession
 from app.repositories.user import UserRepositoryInterface
 
 S = TypeVar("S", bound=RepositorySession)
-
-_QUANTITY_NOT_POSITIVE_ERROR_MSG = "purchasing quantity must be greater than 0"
 
 
 class PlaceOrderError(MyValueError):
