@@ -24,7 +24,7 @@ def test_should_get_by_user_id_return_the_orders_with_more_recently_created_at_f
 
     order_repository = PostgresOrderRepository()
     with repository_session:
-        # explicitly commit here, so that the creation time will be have difference
+        # explicitly commit here after each time of adding order, so there will be difference in the creation time in the record
         order_repository.add(order1, repository_session)
         repository_session.commit()
 
