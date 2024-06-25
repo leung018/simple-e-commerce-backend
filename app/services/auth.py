@@ -13,7 +13,7 @@ class AuthService(Generic[S]):
         self,
         user_repository: UserRepositoryInterface[S],
         auth_repository: AuthRecordRepositoryInterface[S],
-        repository_session: RepositorySession[S],
+        repository_session: S,
     ):
         pass
 
