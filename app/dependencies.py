@@ -1,3 +1,4 @@
+from app.repositories.auth import PostgresAuthRecordRepository
 from app.repositories.order import PostgresOrderRepository
 from app.repositories.postgres import PostgresSession, new_postgres_config_from_env
 from app.repositories.product import PostgresProductRepository
@@ -18,3 +19,7 @@ def get_user_repository():
 
 def get_product_repository():
     return PostgresProductRepository()
+
+
+def get_auth_record_repository():
+    return PostgresAuthRecordRepository()
