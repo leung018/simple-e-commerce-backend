@@ -63,15 +63,21 @@ class PostgresOrderRepository(OrderRepositoryInterface):
             )
             order_rows = cursor.fetchall()
             for order_id, _ in order_rows:
-                cursor.execute(
-                    "SELECT product_id, quantity FROM order_items WHERE order_id = %s",
-                    (order_id,),
-                )
-                order_items = tuple(
-                    OrderItem(product_id, quantity)
-                    for product_id, quantity in cursor.fetchall()
-                )
+                order_items = self._get_order_items(order_id, session)
                 orders.append(
                     Order.create(id=order_id, user_id=user_id, order_items=order_items)
                 )
             return orders
+
+    def _get_order_items(
+        self, order_id, session: PostgresSession
+    ) -> tuple[OrderItem, ...]:
+        with session.get_cursor() as cursor:
+            cursor.execute(
+                "SELECT product_id, quantity FROM order_items WHERE order_id = %s",
+                (order_id,),
+            )
+            return tuple(
+                OrderItem(product_id, quantity)
+                for product_id, quantity in cursor.fetchall()
+            )
