@@ -1,5 +1,5 @@
-from app.models.auth import AuthRecord
-from app.models.order import Order, OrderItem, PurchaseInfo
+from app.models.auth import AuthInput, AuthRecord
+from app.models.order import Order, OrderItem
 from app.models.product import Product
 from app.models.user import User
 
@@ -27,3 +27,7 @@ def new_auth_record(user_id="u1", username="uname", hashed_password="password"):
     return AuthRecord(
         user_id=user_id, username=username, hashed_password=hashed_password
     )
+
+
+def new_auth_input(username="uname", password="password"):
+    return AuthInput(username=username, password=password)
