@@ -39,21 +39,25 @@ class AuthService(Generic[S]):
                     "username: {} already exists".format(auth_input.username)
                 )
 
-            user = self._create_new_user()
+            user = self._new_user()
+            self._user_repository.save(user, self._session)
             self._auth_repository.add(
-                AuthRecord(
-                    user_id=user.id,
-                    hashed_password=get_password_hash(auth_input.password),
-                    username=auth_input.username,
-                ),
+                self._new_auth_record(user.id, auth_input),
                 self._session,
             )
             self._session.commit()
 
-    def _create_new_user(self):
+    def _new_user(self):
         user = User(id=str(uuid4()), balance=USER_INITIAL_BALANCE)
         self._user_repository.save(user, self._session)
         return user
+
+    def _new_auth_record(self, new_user_id: str, auth_input: AuthInput):
+        return AuthRecord(
+            user_id=new_user_id,
+            hashed_password=get_password_hash(auth_input.password),
+            username=auth_input.username,
+        )
 
     def _get_auth_record_by_username(self, username: str) -> Optional[AuthRecord]:
         try:
