@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+import pytest
 
 from app.dependencies import (
     get_product_repository,
@@ -11,6 +12,11 @@ from app.routers.orders import DUMMY_USER_ID
 from tests.models.constructor import new_product, new_user
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def override_repository_session_dependency(repository_session):
+    app.dependency_overrides[get_repository_session] = lambda _: repository_session
 
 
 def test_should_create_and_get_order(repository_session: RepositorySession):
