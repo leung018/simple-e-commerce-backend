@@ -30,6 +30,9 @@ class AuthServiceFixture(Generic[S]):
     def get_access_token(self, auth_input: AuthInput):
         return self.auth_service.get_access_token(auth_input)
 
+    def decode_user_id(self, access_token: str) -> str:
+        return self.auth_service.decode_user_id_from_token(access_token)
+
     def get_user_by_username(self, username: str):
         with self.session:
             auth_record = self.auth_record_repository.get_by_username(
@@ -92,3 +95,15 @@ def test_should_not_able_to_get_access_token_if_username_or_password_not_match(
             new_auth_input(username="uname", password="passwodr")
         )
     assert "username or password is not correct" == str(exc_info.value)
+
+
+def test_should_able_to_decode_user_id(
+    auth_service_fixture: AuthServiceFixture,
+):
+    auth_input = new_auth_input(username="uname")
+    auth_service_fixture.register_user(auth_input)
+
+    token = auth_service_fixture.get_access_token(auth_input)
+    user_id = auth_service_fixture.decode_user_id(token)
+
+    assert auth_service_fixture.get_user_by_username("uname").id == user_id

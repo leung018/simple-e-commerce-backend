@@ -76,7 +76,7 @@ class AuthService(Generic[S]):
         return ""
 
     def decode_user_id_from_token(self, token: str) -> str:
-        raise NotImplementedError
+        return ""
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
