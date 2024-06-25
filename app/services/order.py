@@ -1,7 +1,7 @@
 from typing import TypeVar, Generic
 from uuid import uuid4
 from app.err import MyValueError
-from app.models.order import Order
+from app.models.order import Order, OrderItem, PurchaseInfo
 from app.models.product import Product
 from app.models.user import User
 from app.repositories.order import OrderRepositoryInterface
@@ -31,40 +31,30 @@ class OrderService(Generic[S]):
         self._order_repository = order_repository
         self._session = repository_session
 
-    def place_order(self, user_id: str, product_id_to_quantity: dict[str, int]):
-        self._validate_quantities(product_id_to_quantity)
-
+    def place_order(self, user_id: str, purchase_info: PurchaseInfo):
         with self._session:
             user = self._fetch_user(user_id)
-            total_price = self._process_products(product_id_to_quantity)
+            total_price = self._process_products(purchase_info)
             self._make_payment(user, total_price)
-            self._record_order(user.id, frozenset(list(product_id_to_quantity)))
+            self._record_order(user.id, purchase_info)
 
             self._session.commit()
-
-    def _validate_quantities(self, product_id_to_quantity: dict[str, int]):
-        if not product_id_to_quantity:
-            raise PlaceOrderError(_QUANTITY_NOT_POSITIVE_ERROR_MSG)
-
-        for _, quantity in product_id_to_quantity.items():
-            if quantity <= 0:
-                raise PlaceOrderError(_QUANTITY_NOT_POSITIVE_ERROR_MSG)
 
     def _fetch_user(self, user_id):
         return self._user_repository.get_by_id(user_id, self._session)
 
-    def _process_products(self, product_id_to_quantity: dict[str, int]) -> float:
+    def _process_products(self, purchase_info: PurchaseInfo) -> float:
         """
         Return total price of this order
         """
 
         total_price: float = 0
-        for product_id in product_id_to_quantity:
-            product = self._product_repository.get_by_id(product_id, self._session)
-            purchase_quantity = product_id_to_quantity[product_id]
-
-            self._update_product_inventory(product, purchase_quantity)
-            total_price += purchase_quantity * product.price
+        for order_item in purchase_info.order_items:
+            product = self._product_repository.get_by_id(
+                order_item.product_id, self._session
+            )
+            self._update_product_inventory(product, order_item.quantity)
+            total_price += order_item.quantity * product.price
         return total_price
 
     def _update_product_inventory(self, product: Product, purchase_quantity: int):
@@ -81,10 +71,10 @@ class OrderService(Generic[S]):
         user.balance -= total_price
         self._user_repository.save(user, self._session)
 
-    def _record_order(self, user_id: str, product_ids: frozenset[str]):
+    def _record_order(self, user_id: str, purchase_info: PurchaseInfo):
         order = Order(
             id=str(uuid4()),
             user_id=user_id,
-            product_ids=product_ids,
+            purchase_info=purchase_info,
         )
         self._order_repository.add(order, self._session)

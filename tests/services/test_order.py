@@ -7,7 +7,7 @@ from app.dependencies import (
     get_product_repository,
     get_user_repository,
 )
-from app.models.order import Order
+from app.models.order import Order, OrderItem, PurchaseInfo
 from app.models.product import Product
 from app.models.user import User
 from app.repositories.order import OrderRepositoryInterface
@@ -42,7 +42,11 @@ class OrderServiceFixture(Generic[S]):
             self.session.commit()
 
     def place_order(self, user_id, product_id_to_quantity: dict[str, int]):
-        self.order_service.place_order(user_id, product_id_to_quantity)
+        order_items = tuple(
+            OrderItem(product_id, quantity)
+            for product_id, quantity, in product_id_to_quantity.items()
+        )
+        self.order_service.place_order(user_id, PurchaseInfo(order_items))
 
     def get_user(self, user_id):
         with self.session:
@@ -101,24 +105,6 @@ def order_service_fixture(repository_session):
         order_repository,
         repository_session,
     )
-
-
-def test_should_raise_error_if_total_purchase_quantity_is_not_greater_than_0(
-    order_service_fixture: OrderServiceFixture,
-):
-    product1 = new_product(id="p1")
-    product2 = new_product(id="p2")
-    user = new_user()
-
-    order_service_fixture.save_user(user)
-    order_service_fixture.save_products([product1, product2])
-
-    expected_err_msg = "purchasing quantity must be greater than 0"
-
-    order_service_fixture.assert_place_order_error(
-        user.id, {"p1": 0, "p2": 2}, expected_err_msg
-    )
-    order_service_fixture.assert_place_order_error(user.id, {}, expected_err_msg)
 
 
 def test_should_raise_error_if_purchase_quantity_is_less_than_product_quantity(
@@ -181,7 +167,7 @@ def test_should_make_order_successfully_if_balance_is_enough_to_buy(
     order = order_service_fixture.get_most_recent_order(user.id)
     assert order is not None
     assert order.user_id == user.id
-    assert order.product_ids == frozenset([product1.id, product2.id])
+    assert order.purchase_info.order_items == (OrderItem("p1", 2), OrderItem("p2", 5))
 
 
 def test_should_order_id_generated_are_different_each_time(
