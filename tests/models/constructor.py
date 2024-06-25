@@ -6,11 +6,12 @@ from app.models.user import User
 def new_order(
     id="o1",
     user_id="u1",
-    purchase_info=PurchaseInfo(
-        (OrderItem(product_id="p1", quantity=2), OrderItem(product_id="p2", quantity=3))
+    order_items=(
+        OrderItem(product_id="p1", quantity=2),
+        OrderItem(product_id="p2", quantity=3),
     ),
 ):
-    return Order(id=id, user_id=user_id, purchase_info=purchase_info)
+    return Order(id=id, user_id=user_id, purchase_info=PurchaseInfo(order_items))
 
 
 def new_product(id="p1", name="Hello", category="My category", price=6.7, quantity=5):
