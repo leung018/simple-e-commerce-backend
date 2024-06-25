@@ -16,7 +16,10 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def override_repository_session_dependency(repository_session):
-    app.dependency_overrides[get_repository_session] = lambda _: repository_session
+    def my_get_repository_session():
+        return repository_session
+
+    app.dependency_overrides[get_repository_session] = my_get_repository_session
 
 
 def test_should_create_and_get_order(repository_session: RepositorySession):
