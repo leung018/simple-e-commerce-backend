@@ -1,16 +1,23 @@
-from dataclasses import dataclass
-from typing import Generic, TypeVar
+from dataclasses import dataclass, replace
+from datetime import datetime, timedelta, timezone
+from typing import Callable, Generic, TypeVar
 
+import jwt
 import pytest
 
 from app.dependencies import get_auth_record_repository, get_user_repository
 from app.models.auth import AuthInput
 from app.models.user import USER_INITIAL_BALANCE
 from app.repositories.auth import AuthRecordRepositoryInterface
-from app.repositories.err import EntityNotFoundError
 from app.repositories.session import RepositorySession
 from app.repositories.user import UserRepositoryInterface
-from app.services.auth import AuthService, GetAccessTokenError, RegisterUserError
+from app.services.auth import (
+    AuthService,
+    AuthServiceConfig,
+    DecodeAccessTokenError,
+    GetAccessTokenError,
+    RegisterUserError,
+)
 from tests.models.constructor import new_auth_input
 
 
@@ -21,14 +28,24 @@ S = TypeVar("S", bound=RepositorySession)
 class AuthServiceFixture(Generic[S]):
     user_repository: UserRepositoryInterface[S]
     auth_record_repository: AuthRecordRepositoryInterface[S]
-    auth_service: AuthService[S]
+    auth_service_config: AuthServiceConfig
+    auth_service_factory: Callable[[AuthServiceConfig], AuthService[S]]
     session: S
 
     def register_user(self, auth_input: AuthInput):
-        self.auth_service.register_user(auth_input)
+        auth_service = self.auth_service_factory(self.auth_service_config)
+        auth_service.register_user(auth_input)
 
-    def get_access_token(self, auth_input: AuthInput):
-        return self.auth_service.get_access_token(auth_input)
+    def get_access_token(self, auth_input: AuthInput, expire_days: int = 7):
+        auth_config = replace(
+            self.auth_service_config, access_token_expire_days=expire_days
+        )
+        auth_service = self.auth_service_factory(auth_config)
+        return auth_service.get_access_token(auth_input)
+
+    def decode_user_id(self, access_token: str) -> str:
+        auth_service = self.auth_service_factory(self.auth_service_config)
+        return auth_service.decode_user_id(access_token)
 
     def get_user_by_username(self, username: str):
         with self.session:
@@ -42,13 +59,24 @@ class AuthServiceFixture(Generic[S]):
 def auth_service_fixture(repository_session):
     user_repository = get_user_repository()
     auth_record_repository = get_auth_record_repository()
-    auth_service = AuthService(
-        user_repository=user_repository,
-        auth_repository=auth_record_repository,
-        repository_session=repository_session,
-    )
+    auth_service_config = AuthServiceConfig.from_env()
+
+    def auth_service_factory(
+        auth_service_config: AuthServiceConfig = auth_service_config,
+    ):
+        return AuthService(
+            auth_service_config=auth_service_config,
+            user_repository=user_repository,
+            auth_repository=auth_record_repository,
+            repository_session=repository_session,
+        )
+
     return AuthServiceFixture(
-        user_repository, auth_record_repository, auth_service, repository_session
+        user_repository,
+        auth_record_repository,
+        auth_service_config,
+        auth_service_factory,
+        repository_session,
     )
 
 
@@ -92,3 +120,41 @@ def test_should_not_able_to_get_access_token_if_username_or_password_not_match(
             new_auth_input(username="uname", password="passwodr")
         )
     assert "username or password is not correct" == str(exc_info.value)
+
+
+def test_should_able_to_decode_user_id(
+    auth_service_fixture: AuthServiceFixture,
+):
+    auth_input = new_auth_input(username="uname")
+    auth_service_fixture.register_user(auth_input)
+
+    token = auth_service_fixture.get_access_token(auth_input)
+    user_id = auth_service_fixture.decode_user_id(token)
+
+    assert auth_service_fixture.get_user_by_username("uname").id == user_id
+
+
+def test_should_set_expire_time_of_access_token(
+    auth_service_fixture: AuthServiceFixture,
+):
+    auth_input = new_auth_input()
+    auth_service_fixture.register_user(auth_input)
+    token = auth_service_fixture.get_access_token(auth_input, expire_days=1)
+    decoded_token = jwt.decode(token, options={"verify_signature": False})
+
+    token_expiry = datetime.fromtimestamp(decoded_token["exp"], tz=timezone.utc)
+    expected_expiry = datetime.now(timezone.utc) + timedelta(days=1)
+
+    tolerance = timedelta(minutes=1)
+    assert abs(token_expiry - expected_expiry) <= tolerance
+
+
+def test_should_raise_exception_if_decode_an_expired_token(
+    auth_service_fixture: AuthServiceFixture,
+):
+    auth_input = new_auth_input()
+    auth_service_fixture.register_user(auth_input)
+    token = auth_service_fixture.get_access_token(auth_input, expire_days=-1)
+
+    with pytest.raises(DecodeAccessTokenError):
+        auth_service_fixture.decode_user_id(token)
