@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 import os
 from typing import Generic, Optional, TypeVar
 from uuid import uuid4
@@ -106,8 +107,11 @@ class AuthService(Generic[S]):
         return self._create_access_token(user.id)
 
     def _create_access_token(self, user_id: str):
-        to_encode = {"sub": user_id}
-        # TODO: expire time
+        to_encode: dict = {"sub": user_id}
+        expire = datetime.now(timezone.utc) + timedelta(
+            days=self._auth_service_config.access_token_expire_days
+        )
+        to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(
             to_encode,
             self._auth_service_config.jwt_secret_key,
