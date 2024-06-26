@@ -11,7 +11,7 @@ from app.models.auth import AuthInput, AuthRecord
 from app.models.user import USER_INITIAL_BALANCE, User
 from app.repositories.auth import AuthRecordRepositoryInterface
 from app.repositories.err import EntityNotFoundError
-from app.repositories.session import RepositorySession
+from app.repositories.base import RepositorySession
 from app.repositories.user import UserRepositoryInterface
 
 Operator = TypeVar("Operator")

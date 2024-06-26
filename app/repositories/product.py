@@ -5,7 +5,7 @@ from psycopg import Cursor
 
 from app.models.product import Product
 from app.repositories.err import EntityNotFoundError
-from app.repositories.session import AbstractRepository
+from app.repositories.base import AbstractRepository
 
 Operator = TypeVar("Operator")
 

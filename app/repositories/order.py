@@ -4,7 +4,7 @@ from typing import TypeVar
 from psycopg import Cursor
 
 from app.models.order import Order, OrderItem
-from app.repositories.session import AbstractRepository
+from app.repositories.base import AbstractRepository
 
 Operator = TypeVar("Operator")
 

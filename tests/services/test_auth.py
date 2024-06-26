@@ -11,7 +11,7 @@ from app.repositories.auth import (
     AuthRecordRepositoryInterface,
     auth_record_repository_factory,
 )
-from app.repositories.session import RepositorySession
+from app.repositories.base import RepositorySession
 from app.repositories.user import UserRepositoryInterface, user_repository_factory
 from app.services.auth import (
     AuthService,

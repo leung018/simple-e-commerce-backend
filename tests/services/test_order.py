@@ -10,7 +10,7 @@ from app.repositories.product import (
     ProductRepositoryInterface,
     product_repository_factory,
 )
-from app.repositories.session import RepositorySession
+from app.repositories.base import RepositorySession
 from app.repositories.user import UserRepositoryInterface, user_repository_factory
 from app.services.order import OrderService, PlaceOrderError
 from tests.models.constructor import new_product, new_user

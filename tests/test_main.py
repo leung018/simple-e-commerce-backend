@@ -9,7 +9,7 @@ from app.models.product import Product
 from app.models.user import User
 from app.repositories.order import order_repository_factory
 from app.repositories.product import product_repository_factory
-from app.repositories.session import RepositorySession
+from app.repositories.base import RepositorySession
 from app.repositories.user import user_repository_factory
 from app.routers.orders import DUMMY_USER_ID
 from tests.models.constructor import new_product, new_user

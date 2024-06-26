@@ -5,7 +5,7 @@ from app.dependencies import get_repository_session
 from app.models.order import Order, PurchaseInfo
 from app.repositories.order import OrderRepositoryInterface, order_repository_factory
 from app.repositories.product import product_repository_factory
-from app.repositories.session import RepositorySession
+from app.repositories.base import RepositorySession
 from app.repositories.user import user_repository_factory
 from app.services.order import OrderService
 

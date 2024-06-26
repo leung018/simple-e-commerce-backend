@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import os
 import psycopg
 
-from app.repositories.session import RepositorySession
+from app.repositories.base import RepositorySession
 
 
 @dataclass(frozen=True)
