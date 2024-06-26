@@ -25,6 +25,10 @@ class GetAccessTokenError(MyValueError):
     pass
 
 
+class DecodeAccessTokenError(MyValueError):
+    pass
+
+
 @dataclass(frozen=True)
 class AuthServiceConfig:
     jwt_secret_key: str
@@ -120,11 +124,14 @@ class AuthService(Generic[S]):
         return encoded_jwt
 
     def decode_user_id(self, access_token: str) -> str:
-        payload = jwt.decode(
-            access_token,
-            self._auth_service_config.jwt_secret_key,
-            algorithms=[self._auth_service_config.jwt_algorithm],
-        )
+        try:
+            payload = jwt.decode(
+                access_token,
+                self._auth_service_config.jwt_secret_key,
+                algorithms=[self._auth_service_config.jwt_algorithm],
+            )
+        except jwt.InvalidTokenError:
+            raise DecodeAccessTokenError
         user_id = payload.get("sub")
         return user_id
 

@@ -14,6 +14,7 @@ from app.repositories.user import UserRepositoryInterface
 from app.services.auth import (
     AuthService,
     AuthServiceConfig,
+    DecodeAccessTokenError,
     GetAccessTokenError,
     RegisterUserError,
 )
@@ -146,3 +147,14 @@ def test_should_set_expire_time_of_access_token(
 
     tolerance = timedelta(minutes=1)
     assert abs(token_expiry - expected_expiry) <= tolerance
+
+
+def test_should_raise_exception_if_decode_an_expired_token(
+    auth_service_fixture: AuthServiceFixture,
+):
+    auth_input = new_auth_input()
+    auth_service_fixture.register_user(auth_input)
+    token = auth_service_fixture.get_access_token(auth_input, expire_days=-1)
+
+    with pytest.raises(DecodeAccessTokenError):
+        auth_service_fixture.decode_user_id(token)
