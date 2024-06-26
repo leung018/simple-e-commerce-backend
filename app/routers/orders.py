@@ -39,7 +39,7 @@ class OrderModel(BaseModel):
 def place_order(
     purchase_info: PurchaseInfo,
     current_user_id: Annotated[str, Depends(get_current_user_id)],
-    repository_session: RepositorySession = Depends(get_repository_session),
+    repository_session: Annotated[RepositorySession, Depends(get_repository_session)],
 ):
     user_repository = user_repository_factory(repository_session.new_operator)
     product_repository = product_repository_factory(repository_session.new_operator)
@@ -54,7 +54,7 @@ def place_order(
 @router.get("/", response_model=list[OrderModel])
 def get_orders(
     current_user_id: Annotated[str, Depends(get_current_user_id)],
-    repository_session: RepositorySession = Depends(get_repository_session),
+    repository_session: Annotated[RepositorySession, Depends(get_repository_session)],
 ):
     order_repository = order_repository_factory(repository_session.new_operator)
     with repository_session:

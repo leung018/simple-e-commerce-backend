@@ -29,7 +29,7 @@ def auth_service_factory(repository_session: RepositorySession) -> AuthService:
 
 def get_current_user_id(
     token: Annotated[str, Depends(oauth2_scheme)],
-    repository_session: RepositorySession = Depends(get_repository_session),
+    repository_session: Annotated[RepositorySession, Depends(get_repository_session)],
 ) -> str:
     auth_service = auth_service_factory(repository_session)
     user_id = auth_service.decode_user_id(token)

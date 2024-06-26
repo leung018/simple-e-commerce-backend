@@ -24,7 +24,7 @@ class Token(BaseModel):
 @router.post("/signup", status_code=201)
 def sign_up(
     auth_input: AuthInput,
-    repository_session: RepositorySession = Depends(get_repository_session),
+    repository_session: Annotated[RepositorySession, Depends(get_repository_session)],
 ):
     auth_service = auth_service_factory(repository_session)
 
@@ -37,7 +37,7 @@ def sign_up(
 @router.post("/login")
 def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    repository_session: RepositorySession = Depends(get_repository_session),
+    repository_session: Annotated[RepositorySession, Depends(get_repository_session)],
 ):
     auth_service = auth_service_factory(repository_session)
 
