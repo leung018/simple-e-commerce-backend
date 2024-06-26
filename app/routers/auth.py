@@ -36,7 +36,7 @@ def sign_up(
     )
 
     try:
-        auth_service.register_user(auth_input)
+        auth_service.sign_up(auth_input)
     except RegisterUserError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

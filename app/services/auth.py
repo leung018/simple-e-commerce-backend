@@ -64,7 +64,7 @@ class AuthService(Generic[Operator]):
         self._auth_repository = auth_repository
         self._session = repository_session
 
-    def register_user(self, auth_input: AuthInput):
+    def sign_up(self, auth_input: AuthInput):
         with self._session:
             if self._get_auth_record(auth_input.username):
                 raise RegisterUserError(
