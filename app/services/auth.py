@@ -22,7 +22,7 @@ class RegisterUserError(MyValueError):
 
 
 class GetAccessTokenError(MyValueError):
-    pass
+    USERNAME_OR_PASSWORD_ERROR = "username or password is not correct"
 
 
 class DecodeAccessTokenError(MyValueError):
@@ -100,7 +100,7 @@ class AuthService(Generic[Operator]):
             if not auth_record or not is_password_valid(
                 auth_input.password, auth_record.hashed_password
             ):
-                raise GetAccessTokenError("username or password is not correct")
+                raise GetAccessTokenError(GetAccessTokenError.USERNAME_OR_PASSWORD_ERROR)
 
             user = self._user_repository.get_by_id(auth_record.user_id)
 

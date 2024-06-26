@@ -113,13 +113,13 @@ def test_should_not_able_to_get_access_token_if_username_or_password_not_match(
         auth_service_fixture.get_access_token(
             new_auth_input(username="unaem", password="password")
         )
-    assert "username or password is not correct" == str(exc_info.value)
+    assert GetAccessTokenError.USERNAME_OR_PASSWORD_ERROR == str(exc_info.value)
 
     with pytest.raises(GetAccessTokenError) as exc_info:
         auth_service_fixture.get_access_token(
             new_auth_input(username="uname", password="passwodr")
         )
-    assert "username or password is not correct" == str(exc_info.value)
+    assert GetAccessTokenError.USERNAME_OR_PASSWORD_ERROR == str(exc_info.value)
 
 
 def test_should_able_to_decode_user_id(

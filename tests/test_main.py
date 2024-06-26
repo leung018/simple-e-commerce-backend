@@ -12,6 +12,7 @@ from app.repositories.product import product_repository_factory
 from app.repositories.base import RepositorySession
 from app.repositories.user import user_repository_factory
 from app.routers.orders import DUMMY_USER_ID
+from app.services.auth import GetAccessTokenError
 from tests.models.constructor import new_product, new_user
 
 client = TestClient(app)
@@ -65,7 +66,7 @@ def test_should_reject_login_with_wrong_password():
         data={"username": "user1", "password": "mypassword2"},
     )
     assert response.status_code == 400
-    assert response.json() == {"detail": "username or password is not correct"}
+    assert response.json() == {"detail": GetAccessTokenError.USERNAME_OR_PASSWORD_ERROR}
 
 
 def test_should_place_order_and_get_placed_order(repository_session: RepositorySession):
