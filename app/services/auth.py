@@ -1,5 +1,8 @@
+from dataclasses import dataclass
+import os
 from typing import Generic, Optional, TypeVar
 from uuid import uuid4
+import jwt
 from passlib.context import CryptContext
 
 from app.err import MyValueError
@@ -21,13 +24,34 @@ class GetAccessTokenError(MyValueError):
     pass
 
 
+@dataclass(frozen=True)
+class AuthServiceConfig:
+    jwt_secret_key: str
+    jwt_algorithm: str = "HS256"
+    access_token_expire_days: int = 7
+
+    @staticmethod
+    def from_env():
+        jwt_secret_key = os.getenv("JWT_SECRET_KEY", "localhost")
+        jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
+        access_token_expire_days = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS", 7))
+
+        return AuthServiceConfig(
+            jwt_secret_key=jwt_secret_key,
+            jwt_algorithm=jwt_algorithm,
+            access_token_expire_days=access_token_expire_days,
+        )
+
+
 class AuthService(Generic[S]):
     def __init__(
         self,
+        auth_service_config: AuthServiceConfig,
         user_repository: UserRepositoryInterface[S],
         auth_repository: AuthRecordRepositoryInterface[S],
         repository_session: S,
     ):
+        self._auth_service_config = auth_service_config
         self._user_repository = user_repository
         self._auth_repository = auth_repository
         self._session = repository_session
@@ -73,10 +97,29 @@ class AuthService(Generic[S]):
                 auth_input.password, auth_record.hashed_password
             ):
                 raise GetAccessTokenError("username or password is not correct")
-        return ""
+
+            user = self._user_repository.get_by_id(auth_record.user_id, self._session)
+
+        return self._create_access_token(user.id)
+
+    def _create_access_token(self, user_id: str):
+        to_encode = {"sub": user_id}
+        # TODO: expire time
+        encoded_jwt = jwt.encode(
+            to_encode,
+            self._auth_service_config.jwt_secret_key,
+            algorithm=self._auth_service_config.jwt_algorithm,
+        )
+        return encoded_jwt
 
     def decode_user_id(self, access_token: str) -> str:
-        return ""
+        payload = jwt.decode(
+            access_token,
+            self._auth_service_config.jwt_secret_key,
+            algorithms=[self._auth_service_config.jwt_algorithm],
+        )
+        user_id = payload.get("sub")
+        return user_id
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

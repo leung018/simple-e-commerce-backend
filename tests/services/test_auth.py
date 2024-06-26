@@ -10,7 +10,12 @@ from app.repositories.auth import AuthRecordRepositoryInterface
 from app.repositories.err import EntityNotFoundError
 from app.repositories.session import RepositorySession
 from app.repositories.user import UserRepositoryInterface
-from app.services.auth import AuthService, GetAccessTokenError, RegisterUserError
+from app.services.auth import (
+    AuthService,
+    AuthServiceConfig,
+    GetAccessTokenError,
+    RegisterUserError,
+)
 from tests.models.constructor import new_auth_input
 
 
@@ -46,6 +51,7 @@ def auth_service_fixture(repository_session):
     user_repository = get_user_repository()
     auth_record_repository = get_auth_record_repository()
     auth_service = AuthService(
+        auth_service_config=AuthServiceConfig.from_env(),
         user_repository=user_repository,
         auth_repository=auth_record_repository,
         repository_session=repository_session,
