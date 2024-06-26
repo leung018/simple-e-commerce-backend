@@ -12,7 +12,7 @@ from app.repositories.product import product_repository_factory
 from app.repositories.base import RepositorySession
 from app.repositories.user import user_repository_factory
 from app.routers.orders import DUMMY_USER_ID
-from app.services.auth import GetAccessTokenError
+from app.services.auth import GetAccessTokenError, RegisterUserError
 from tests.models.constructor import new_product, new_user
 
 client = TestClient(app)
@@ -53,7 +53,9 @@ def test_should_reject_register_with_same_user():
         json={"username": "user1", "password": "mypassword2"},
     )
     assert response.status_code == 400
-    assert response.json() == {"detail": "username: user1 already exists"}
+    assert response.json() == {
+        "detail": RegisterUserError.format_username_exists_error("user1")
+    }
 
 
 def test_should_reject_login_with_wrong_password():
