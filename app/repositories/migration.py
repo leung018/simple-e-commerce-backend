@@ -14,7 +14,7 @@ def setup_tables(session: PostgresSession):
     ]
 
     with session:
-        with session.get_cursor() as cur:
+        with session.get_operator() as cur:
             for stmt in stmts:
                 cur.execute(stmt)
         session.commit()
@@ -29,7 +29,7 @@ def drop_tables(session: PostgresSession):
     ]
 
     with session:
-        with session.get_cursor() as cur:
+        with session.get_operator() as cur:
             for stmt in stmts:
                 cur.execute(stmt)
         session.commit()

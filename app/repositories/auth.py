@@ -1,22 +1,23 @@
-from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
+from abc import abstractmethod
+from typing import TypeVar
+
+from psycopg import Cursor
 
 from app.models.auth import AuthRecord
 from app.repositories.err import EntityNotFoundError
-from app.repositories.postgres import PostgresSession
-from app.repositories.session import RepositorySession
+from app.repositories.session import AbstractRepository
 
 
-S = TypeVar("S", bound=RepositorySession)
+Operator = TypeVar("Operator")
 
 
-class AuthRecordRepositoryInterface(ABC, Generic[S]):
+class AuthRecordRepositoryInterface(AbstractRepository[Operator]):
     @abstractmethod
-    def add(self, auth_record: AuthRecord, session: S):
+    def add(self, auth_record: AuthRecord):
         pass
 
     @abstractmethod
-    def get_by_username(self, username: str, session: S) -> AuthRecord:
+    def get_by_username(self, username: str) -> AuthRecord:
         """
         Raises:
             EntityNotFoundError: If no record is found with the provided username
@@ -24,7 +25,7 @@ class AuthRecordRepositoryInterface(ABC, Generic[S]):
         pass
 
 
-class PostgresAuthRecordRepository(AuthRecordRepositoryInterface):
+class PostgresAuthRecordRepository(AuthRecordRepositoryInterface[Cursor]):
     CREATE_TABLE_IF_NOT_EXISTS = """
         CREATE TABLE IF NOT EXISTS auth_records (
             user_id VARCHAR PRIMARY KEY,
@@ -37,8 +38,8 @@ class PostgresAuthRecordRepository(AuthRecordRepositoryInterface):
         DROP TABLE auth_records;
     """
 
-    def add(self, auth_record: AuthRecord, session: PostgresSession):
-        with session.get_cursor() as cursor:
+    def add(self, auth_record: AuthRecord):
+        with self.get_operator() as cursor:
             cursor.execute(
                 "INSERT INTO auth_records (user_id, username, hashed_password) VALUES (%s, %s, %s);",
                 (
@@ -47,10 +48,9 @@ class PostgresAuthRecordRepository(AuthRecordRepositoryInterface):
                     auth_record.hashed_password,
                 ),
             )
-        session.commit()
 
-    def get_by_username(self, username: str, session: PostgresSession) -> AuthRecord:
-        with session.get_cursor() as cursor:
+    def get_by_username(self, username: str) -> AuthRecord:
+        with self.get_operator() as cursor:
             cursor.execute(
                 "SELECT user_id, username, hashed_password FROM auth_records WHERE username = %s;",
                 (username,),

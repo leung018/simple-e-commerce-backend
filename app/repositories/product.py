@@ -1,23 +1,22 @@
-from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
+from abc import abstractmethod
+from typing import TypeVar
+
+from psycopg import Cursor
 
 from app.models.product import Product
 from app.repositories.err import EntityNotFoundError
-from app.repositories.postgres import (
-    PostgresSession,
-)
-from app.repositories.session import RepositorySession
+from app.repositories.session import AbstractRepository
 
-S = TypeVar("S", bound=RepositorySession)
+Operator = TypeVar("Operator")
 
 
-class ProductRepositoryInterface(ABC, Generic[S]):
+class ProductRepositoryInterface(AbstractRepository[Operator]):
     @abstractmethod
-    def save(self, product: Product, session: S):
+    def save(self, product: Product):
         pass
 
     @abstractmethod
-    def get_by_id(self, product_id: str, session: S) -> Product:
+    def get_by_id(self, product_id: str) -> Product:
         """
         Raises:
             EntityNotFoundError: If no product is found with the provided id.
@@ -25,7 +24,7 @@ class ProductRepositoryInterface(ABC, Generic[S]):
         pass
 
 
-class PostgresProductRepository(ProductRepositoryInterface):
+class PostgresProductRepository(ProductRepositoryInterface[Cursor]):
     CREATE_TABLE_IF_NOT_EXISTS = """
         CREATE TABLE IF NOT EXISTS products (
             id VARCHAR PRIMARY KEY,
@@ -39,8 +38,8 @@ class PostgresProductRepository(ProductRepositoryInterface):
         DROP TABLE products;
     """
 
-    def save(self, product: Product, session: PostgresSession):
-        with session.get_cursor() as cur:
+    def save(self, product: Product):
+        with self.get_operator() as cur:
             cur.execute(
                 """
                     INSERT INTO products (id, name, category, price, quantity)
@@ -61,8 +60,8 @@ class PostgresProductRepository(ProductRepositoryInterface):
                 ),
             )
 
-    def get_by_id(self, product_id: str, session: PostgresSession) -> Product:
-        with session.get_cursor() as cur:
+    def get_by_id(self, product_id: str) -> Product:
+        with self.get_operator() as cur:
             cur.execute(
                 "SELECT id, name, category, price, quantity FROM products WHERE id = %s;",
                 (product_id,),
