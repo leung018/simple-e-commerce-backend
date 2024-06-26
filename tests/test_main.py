@@ -25,6 +25,23 @@ def override_repository_session_dependency(repository_session):
     app.dependency_overrides[get_repository_session] = my_get_repository_session
 
 
+def test_should_sign_up_and_login():
+    # sign up
+    response = client.post(
+        "/auth/signup", json={"username": "myname", "password": "mypassword"}
+    )
+    assert response.status_code == 201
+
+    # login
+    response = client.post(
+        "/auth/login",
+        data={"username": "myname", "password": "mypassword"},
+    )
+    assert response.status_code == 200
+    assert response.json()["access_token"]
+    assert response.json()["token_type"] == "bearer"
+
+
 def test_should_place_order_and_get_placed_order(repository_session: RepositorySession):
     product = new_product(quantity=10, price=1)
     create_product(product, repository_session)
