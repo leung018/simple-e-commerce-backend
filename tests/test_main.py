@@ -26,32 +26,20 @@ def override_repository_session_dependency(repository_session):
     app.dependency_overrides[get_repository_session] = my_get_repository_session
 
 
-def test_should_sign_up_and_login():
-    # sign up
-    response = client.post(
-        "/auth/signup", json={"username": "myname", "password": "mypassword"}
-    )
+def test_should_sign_up_and_login_response_properly():
+    response = call_sign_up_api("myname", "mypassword")
     assert response.status_code == 201
 
-    # login
-    response = client.post(
-        "/auth/login",
-        data={"username": "myname", "password": "mypassword"},
-    )
+    response = call_login_api("myname", "mypassword")
     assert response.status_code == 200
     assert response.json()["access_token"]
     assert response.json()["token_type"] == "bearer"
 
 
-def test_should_reject_register_with_same_user():
-    response = client.post(
-        "/auth/signup", json={"username": "user1", "password": "mypassword"}
-    )
-    assert response.status_code == 201
-    response = client.post(
-        "/auth/signup",
-        json={"username": "user1", "password": "mypassword2"},
-    )
+def test_should_reject_sign_up_with_same_user():
+    call_sign_up_api("user1", "mypassword")
+
+    response = call_sign_up_api("user1", "mypassword2")
     assert response.status_code == 400
     assert response.json() == {
         "detail": RegisterUserError.format_username_exists_error("user1")
@@ -59,15 +47,8 @@ def test_should_reject_register_with_same_user():
 
 
 def test_should_reject_login_with_wrong_password():
-    response = client.post(
-        "/auth/signup", json={"username": "user1", "password": "mypassword"}
-    )
-    assert response.status_code == 201
-    response = client.post(
-        "/auth/login",
-        data={"username": "user1", "password": "mypassword2"},
-    )
-    assert response.status_code == 400
+    call_sign_up_api("myname", "mypassword")
+    response = call_login_api("myname", "wrongpassword")
     assert response.json() == {"detail": GetAccessTokenError.USERNAME_OR_PASSWORD_ERROR}
 
 
@@ -110,3 +91,34 @@ def create_user(user: User, repository_session: RepositorySession):
     with repository_session:
         user_repository.save(user)
         repository_session.commit()
+
+
+def call_login_api(username: str, password: str):
+    response = client.post(
+        "/auth/login", data={"username": username, "password": password}
+    )
+    return response
+
+
+def call_sign_up_api(username: str, password: str):
+    response = client.post(
+        "/auth/signup", json={"username": username, "password": password}
+    )
+    return response
+
+
+def call_place_order_api(token: str, order_items: list):
+    response = client.post(
+        "/orders",
+        json={"order_items": order_items},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    return response
+
+
+def call_get_orders_api(token: str):
+    response = client.get(
+        "/orders",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    return response
