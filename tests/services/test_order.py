@@ -2,43 +2,39 @@ from dataclasses import dataclass
 from typing import Generic, Optional, TypeVar
 import pytest
 
-from app.dependencies import (
-    get_order_repository,
-    get_product_repository,
-    get_user_repository,
-)
 from app.models.order import Order, OrderItem, PurchaseInfo
 from app.models.product import Product
 from app.models.user import User
-from app.repositories.order import OrderRepositoryInterface
+from app.repositories.order import OrderRepository, order_repository_factory
 from app.repositories.product import (
-    ProductRepositoryInterface,
+    ProductRepository,
+    product_repository_factory,
 )
-from app.repositories.session import RepositorySession
-from app.repositories.user import UserRepositoryInterface
+from app.repositories.base import RepositorySession
+from app.repositories.user import UserRepository, user_repository_factory
 from app.services.order import OrderService, PlaceOrderError
 from tests.models.constructor import new_product, new_user
 
-S = TypeVar("S", bound=RepositorySession)
+Operator = TypeVar("Operator")
 
 
 @dataclass
-class OrderServiceFixture(Generic[S]):
-    order_service: OrderService[S]
-    user_repository: UserRepositoryInterface[S]
-    product_repository: ProductRepositoryInterface[S]
-    order_repository: OrderRepositoryInterface[S]
-    session: S
+class OrderServiceFixture(Generic[Operator]):
+    order_service: OrderService[Operator]
+    user_repository: UserRepository[Operator]
+    product_repository: ProductRepository[Operator]
+    order_repository: OrderRepository[Operator]
+    session: RepositorySession[Operator]
 
     def save_user(self, user: User):
         with self.session:
-            self.user_repository.save(user, self.session)
+            self.user_repository.save(user)
             self.session.commit()
 
     def save_products(self, products: list[Product]):
         with self.session:
             for product in products:
-                self.product_repository.save(product, self.session)
+                self.product_repository.save(product)
             self.session.commit()
 
     def place_order(self, user_id, product_id_to_quantity: dict[str, int]):
@@ -50,19 +46,19 @@ class OrderServiceFixture(Generic[S]):
 
     def get_user(self, user_id):
         with self.session:
-            return self.user_repository.get_by_id(user_id, self.session)
+            return self.user_repository.get_by_id(user_id)
 
     def get_products(self, product_ids: list[str]):
         with self.session:
             products = [
-                self.product_repository.get_by_id(product_id, self.session)
+                self.product_repository.get_by_id(product_id)
                 for product_id in product_ids
             ]
             return products
 
     def get_most_recent_order(self, user_id: str) -> Optional[Order]:
         with self.session:
-            orders = self.order_repository.get_by_user_id(user_id, self.session)
+            orders = self.order_repository.get_by_user_id(user_id)
             if not orders:
                 return None
             return orders[0]
@@ -91,10 +87,10 @@ class OrderServiceFixture(Generic[S]):
 
 
 @pytest.fixture
-def order_service_fixture(repository_session):
-    user_repository = get_user_repository()
-    product_repository = get_product_repository()
-    order_repository = get_order_repository()
+def order_service_fixture(repository_session: RepositorySession):
+    user_repository = user_repository_factory(repository_session.new_operator)
+    product_repository = product_repository_factory(repository_session.new_operator)
+    order_repository = order_repository_factory(repository_session.new_operator)
     order_service = OrderService(
         user_repository, product_repository, order_repository, repository_session
     )

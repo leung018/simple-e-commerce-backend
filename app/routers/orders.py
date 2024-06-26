@@ -1,15 +1,12 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from app.dependencies import (
-    get_order_repository,
-    get_product_repository,
-    get_repository_session,
-    get_user_repository,
-)
+from app.dependencies import get_repository_session
 from app.models.order import Order, PurchaseInfo
-from app.repositories.order import OrderRepositoryInterface
-from app.repositories.session import RepositorySession
+from app.repositories.order import OrderRepository, order_repository_factory
+from app.repositories.product import product_repository_factory
+from app.repositories.base import RepositorySession
+from app.repositories.user import user_repository_factory
 from app.services.order import OrderService
 
 DUMMY_USER_ID = "dummy_user_id"  # TODO: For testing in current stage, remove it after oauth is added
@@ -41,11 +38,12 @@ class OrderModel(BaseModel):
 @router.post("/", status_code=201)
 def place_order(
     purchase_info: PurchaseInfo,
-    user_repository=Depends(get_user_repository),
-    product_repository=Depends(get_product_repository),
-    order_repository=Depends(get_order_repository),
-    repository_session=Depends(get_repository_session),
+    repository_session: RepositorySession = Depends(get_repository_session),
 ):
+    user_repository = user_repository_factory(repository_session.new_operator)
+    product_repository = product_repository_factory(repository_session.new_operator)
+    order_repository = order_repository_factory(repository_session.new_operator)
+
     order_service = OrderService(
         user_repository, product_repository, order_repository, repository_session
     )
@@ -54,9 +52,9 @@ def place_order(
 
 @router.get("/", response_model=list[OrderModel])
 def get_orders(
-    order_repository: OrderRepositoryInterface = Depends(get_order_repository),
     repository_session: RepositorySession = Depends(get_repository_session),
 ):
+    order_repository = order_repository_factory(repository_session.new_operator)
     with repository_session:
-        orders = order_repository.get_by_user_id(DUMMY_USER_ID, repository_session)
+        orders = order_repository.get_by_user_id(DUMMY_USER_ID)
     return list(map(OrderModel.from_domain, orders))

@@ -1,7 +1,11 @@
 from abc import ABC, abstractmethod
+from typing import Callable, Generic, TypeVar
 
 
-class RepositorySession(ABC):
+Operator = TypeVar("Operator")
+
+
+class RepositorySession(ABC, Generic[Operator]):
     """
     Abstract base class for managing database transactions with automatic rollback.
 
@@ -32,9 +36,33 @@ class RepositorySession(ABC):
         self.rollback()
 
     @abstractmethod
+    def new_operator(self) -> Operator:
+        """
+        Return a new instance of Operator that is used for database interactions within the repository.
+
+        This method can be passed to the constructor of a class implementing AbstractRepository.
+
+        This setup allows AbstractRepository to utilize the specific Operator for executing database operations,
+        while separating the concerns of transaction management (committing and rolling back) which are handled
+        by the RepositorySession class.
+        """
+        pass
+
+    @abstractmethod
     def commit(self):
         pass
 
     @abstractmethod
     def rollback(self):
         pass
+
+
+class AbstractRepository(ABC, Generic[Operator]):
+    def __init__(self, new_operator: Callable[[], Operator]):
+        """
+        Args:
+           new_operator (Callable[[], Operator]): A factory method that returns an instance of Operator.
+                This callable is expected to be provided by an implementation of the RepositorySession class.
+                Also see the comment of new_operator in the RepositorySession class.
+        """
+        self.new_operator = new_operator

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import os
 import psycopg
 
-from app.repositories.session import RepositorySession
+from app.repositories.base import RepositorySession
 
 
 @dataclass(frozen=True)
@@ -47,7 +47,7 @@ class PostgresSession(RepositorySession):
             port=self._config.port,
         )
 
-    def get_cursor(self):
+    def new_operator(self):
         return self._conn.cursor()
 
     def commit(self):

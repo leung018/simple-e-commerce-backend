@@ -7,12 +7,12 @@ from tests.models.constructor import new_order
 def test_should_session_not_commit_work_by_default(repository_session: PostgresSession):
     order = new_order(user_id="u1")
     with repository_session:
-        order_repository = PostgresOrderRepository()
-        order_repository.add(order, repository_session)
-        assert len(order_repository.get_by_user_id("u1", repository_session)) == 1
+        order_repository = PostgresOrderRepository(repository_session.new_operator)
+        order_repository.add(order)
+        assert len(order_repository.get_by_user_id("u1")) == 1
 
     with repository_session:
-        assert len(order_repository.get_by_user_id("u1", repository_session)) == 0
+        assert len(order_repository.get_by_user_id("u1")) == 0
 
 
 def test_should_committed_changes_persist_to_other_session_block(
@@ -20,12 +20,12 @@ def test_should_committed_changes_persist_to_other_session_block(
 ):
     order = new_order(user_id="u1")
     with repository_session:
-        order_repository = PostgresOrderRepository()
-        order_repository.add(order, repository_session)
+        order_repository = PostgresOrderRepository(repository_session.new_operator)
+        order_repository.add(order)
         repository_session.commit()
 
     with repository_session:
-        assert len(order_repository.get_by_user_id("u1", repository_session)) == 1
+        assert len(order_repository.get_by_user_id("u1")) == 1
 
 
 def test_should_able_to_rollback_change_in_the_same_session_block(
@@ -33,13 +33,13 @@ def test_should_able_to_rollback_change_in_the_same_session_block(
 ):
     order = new_order(user_id="u1")
     with repository_session:
-        order_repository = PostgresOrderRepository()
-        order_repository.add(order, repository_session)
-        assert len(order_repository.get_by_user_id("u1", repository_session)) == 1
+        order_repository = PostgresOrderRepository(repository_session.new_operator)
+        order_repository.add(order)
+        assert len(order_repository.get_by_user_id("u1")) == 1
 
         repository_session.rollback()
 
-        assert len(order_repository.get_by_user_id("u1", repository_session)) == 0
+        assert len(order_repository.get_by_user_id("u1")) == 0
 
 
 def test_should_not_rollback_committed_changes(
@@ -49,18 +49,18 @@ def test_should_not_rollback_committed_changes(
     order2 = new_order(user_id="u1", id="o2")
 
     with repository_session:
-        order_repository = PostgresOrderRepository()
-        order_repository.add(order1, repository_session)
+        order_repository = PostgresOrderRepository(repository_session.new_operator)
+        order_repository.add(order1)
         repository_session.commit()
 
-        order_repository.add(order2, repository_session)
-        assert len(order_repository.get_by_user_id("u1", repository_session)) == 2
+        order_repository.add(order2)
+        assert len(order_repository.get_by_user_id("u1")) == 2
 
         repository_session.rollback()
-        assert len(order_repository.get_by_user_id("u1", repository_session)) == 1
+        assert len(order_repository.get_by_user_id("u1")) == 1
 
     with repository_session:
-        assert len(order_repository.get_by_user_id("u1", repository_session)) == 1
+        assert len(order_repository.get_by_user_id("u1")) == 1
 
 
 def test_should_rollback_on_error(repository_session: PostgresSession):
@@ -70,10 +70,10 @@ def test_should_rollback_on_error(repository_session: PostgresSession):
     order = new_order(user_id="u1")
     with pytest.raises(MyException):
         with repository_session:
-            order_repository = PostgresOrderRepository()
-            order_repository.add(order, repository_session)
+            order_repository = PostgresOrderRepository(repository_session.new_operator)
+            order_repository.add(order)
             raise MyException()
 
     with repository_session:
-        order_repository = PostgresOrderRepository()
-        assert len(order_repository.get_by_user_id("u1", repository_session)) == 0
+        order_repository = PostgresOrderRepository(repository_session.new_operator)
+        assert len(order_repository.get_by_user_id("u1")) == 0

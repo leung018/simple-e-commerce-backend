@@ -9,12 +9,12 @@ from passlib.context import CryptContext
 from app.err import MyValueError
 from app.models.auth import AuthInput, AuthRecord
 from app.models.user import USER_INITIAL_BALANCE, User
-from app.repositories.auth import AuthRecordRepositoryInterface
+from app.repositories.auth import AuthRecordRepository
 from app.repositories.err import EntityNotFoundError
-from app.repositories.session import RepositorySession
-from app.repositories.user import UserRepositoryInterface
+from app.repositories.base import RepositorySession
+from app.repositories.user import UserRepository
 
-S = TypeVar("S", bound=RepositorySession)
+Operator = TypeVar("Operator")
 
 
 class RegisterUserError(MyValueError):
@@ -51,13 +51,13 @@ class AuthServiceConfig:
         )
 
 
-class AuthService(Generic[S]):
+class AuthService(Generic[Operator]):
     def __init__(
         self,
         auth_service_config: AuthServiceConfig,
-        user_repository: UserRepositoryInterface[S],
-        auth_repository: AuthRecordRepositoryInterface[S],
-        repository_session: S,
+        user_repository: UserRepository[Operator],
+        auth_repository: AuthRecordRepository[Operator],
+        repository_session: RepositorySession[Operator],
     ):
         self._auth_service_config = auth_service_config
         self._user_repository = user_repository
@@ -72,11 +72,8 @@ class AuthService(Generic[S]):
                 )
 
             user = self._new_user()
-            self._user_repository.save(user, self._session)
-            self._auth_repository.add(
-                self._new_auth_record(user.id, auth_input),
-                self._session,
-            )
+            self._user_repository.save(user)
+            self._auth_repository.add(self._new_auth_record(user.id, auth_input))
             self._session.commit()
 
     def _new_user(self):
@@ -92,7 +89,7 @@ class AuthService(Generic[S]):
 
     def _get_auth_record(self, username: str) -> Optional[AuthRecord]:
         try:
-            return self._auth_repository.get_by_username(username, self._session)
+            return self._auth_repository.get_by_username(username)
         except EntityNotFoundError:
             return None
 
@@ -105,7 +102,7 @@ class AuthService(Generic[S]):
             ):
                 raise GetAccessTokenError("username or password is not correct")
 
-            user = self._user_repository.get_by_id(auth_record.user_id, self._session)
+            user = self._user_repository.get_by_id(auth_record.user_id)
 
         return self._create_access_token(user.id)
 

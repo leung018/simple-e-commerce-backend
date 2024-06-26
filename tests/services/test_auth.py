@@ -5,12 +5,14 @@ from typing import Callable, Generic, TypeVar
 import jwt
 import pytest
 
-from app.dependencies import get_auth_record_repository, get_user_repository
 from app.models.auth import AuthInput
 from app.models.user import USER_INITIAL_BALANCE
-from app.repositories.auth import AuthRecordRepositoryInterface
-from app.repositories.session import RepositorySession
-from app.repositories.user import UserRepositoryInterface
+from app.repositories.auth import (
+    AuthRecordRepository,
+    auth_record_repository_factory,
+)
+from app.repositories.base import RepositorySession
+from app.repositories.user import UserRepository, user_repository_factory
 from app.services.auth import (
     AuthService,
     AuthServiceConfig,
@@ -21,16 +23,16 @@ from app.services.auth import (
 from tests.models.constructor import new_auth_input
 
 
-S = TypeVar("S", bound=RepositorySession)
+Operator = TypeVar("Operator")
 
 
 @dataclass
-class AuthServiceFixture(Generic[S]):
-    user_repository: UserRepositoryInterface[S]
-    auth_record_repository: AuthRecordRepositoryInterface[S]
+class AuthServiceFixture(Generic[Operator]):
+    user_repository: UserRepository[Operator]
+    auth_record_repository: AuthRecordRepository[Operator]
     auth_service_config: AuthServiceConfig
-    auth_service_factory: Callable[[AuthServiceConfig], AuthService[S]]
-    session: S
+    auth_service_factory: Callable[[AuthServiceConfig], AuthService[Operator]]
+    session: RepositorySession[Operator]
 
     def register_user(self, auth_input: AuthInput):
         auth_service = self.auth_service_factory(self.auth_service_config)
@@ -49,16 +51,16 @@ class AuthServiceFixture(Generic[S]):
 
     def get_user_by_username(self, username: str):
         with self.session:
-            auth_record = self.auth_record_repository.get_by_username(
-                username, self.session
-            )
-            return self.user_repository.get_by_id(auth_record.user_id, self.session)
+            auth_record = self.auth_record_repository.get_by_username(username)
+            return self.user_repository.get_by_id(auth_record.user_id)
 
 
 @pytest.fixture
-def auth_service_fixture(repository_session):
-    user_repository = get_user_repository()
-    auth_record_repository = get_auth_record_repository()
+def auth_service_fixture(repository_session: RepositorySession):
+    user_repository = user_repository_factory(repository_session.new_operator)
+    auth_record_repository = auth_record_repository_factory(
+        repository_session.new_operator
+    )
     auth_service_config = AuthServiceConfig.from_env()
 
     def auth_service_factory(

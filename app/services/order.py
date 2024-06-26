@@ -4,25 +4,25 @@ from app.err import MyValueError
 from app.models.order import Order, PurchaseInfo
 from app.models.product import Product
 from app.models.user import User
-from app.repositories.order import OrderRepositoryInterface
-from app.repositories.product import ProductRepositoryInterface
-from app.repositories.session import RepositorySession
-from app.repositories.user import UserRepositoryInterface
+from app.repositories.order import OrderRepository
+from app.repositories.product import ProductRepository
+from app.repositories.base import RepositorySession
+from app.repositories.user import UserRepository
 
-S = TypeVar("S", bound=RepositorySession)
+Operator = TypeVar("Operator")
 
 
 class PlaceOrderError(MyValueError):
     pass
 
 
-class OrderService(Generic[S]):
+class OrderService(Generic[Operator]):
     def __init__(
         self,
-        user_repository: UserRepositoryInterface[S],
-        product_repository: ProductRepositoryInterface[S],
-        order_repository: OrderRepositoryInterface[S],
-        repository_session: S,
+        user_repository: UserRepository[Operator],
+        product_repository: ProductRepository[Operator],
+        order_repository: OrderRepository[Operator],
+        repository_session: RepositorySession[Operator],
     ):
         self._user_repository = user_repository
         self._product_repository = product_repository
@@ -39,7 +39,7 @@ class OrderService(Generic[S]):
             self._session.commit()
 
     def _fetch_user(self, user_id):
-        return self._user_repository.get_by_id(user_id, self._session)
+        return self._user_repository.get_by_id(user_id)
 
     def _process_products(self, purchase_info: PurchaseInfo) -> float:
         """
@@ -48,9 +48,7 @@ class OrderService(Generic[S]):
 
         total_price: float = 0
         for order_item in purchase_info.order_items:
-            product = self._product_repository.get_by_id(
-                order_item.product_id, self._session
-            )
+            product = self._product_repository.get_by_id(order_item.product_id)
             self._update_product_inventory(product, order_item.quantity)
             total_price += order_item.quantity * product.price
         return total_price
@@ -60,14 +58,14 @@ class OrderService(Generic[S]):
             raise PlaceOrderError("quantity of product is not enough for your purchase")
 
         product.quantity -= purchase_quantity
-        self._product_repository.save(product, self._session)
+        self._product_repository.save(product)
 
     def _make_payment(self, user: User, total_price: float):
         if total_price > user.balance:
             raise PlaceOrderError("not enough balance")
 
         user.balance -= total_price
-        self._user_repository.save(user, self._session)
+        self._user_repository.save(user)
 
     def _record_order(self, user_id: str, purchase_info: PurchaseInfo):
         order = Order(
@@ -75,4 +73,4 @@ class OrderService(Generic[S]):
             user_id=user_id,
             purchase_info=purchase_info,
         )
-        self._order_repository.add(order, self._session)
+        self._order_repository.add(order)

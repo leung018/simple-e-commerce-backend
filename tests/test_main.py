@@ -2,15 +2,15 @@ from fastapi.testclient import TestClient
 import pytest
 
 from app.dependencies import (
-    get_order_repository,
-    get_product_repository,
     get_repository_session,
-    get_user_repository,
 )
 from app.main import app
 from app.models.product import Product
 from app.models.user import User
-from app.repositories.session import RepositorySession
+from app.repositories.order import order_repository_factory
+from app.repositories.product import product_repository_factory
+from app.repositories.base import RepositorySession
+from app.repositories.user import user_repository_factory
 from app.routers.orders import DUMMY_USER_ID
 from tests.models.constructor import new_product, new_user
 
@@ -47,21 +47,20 @@ def test_should_place_order_and_get_placed_order(repository_session: RepositoryS
 
     # check order id in response same as the one stored in repository
     with repository_session:
-        order_in_repo = get_order_repository().get_by_user_id(
-            DUMMY_USER_ID, repository_session
-        )[0]
+        order_repo = order_repository_factory(repository_session.new_operator)
+        order_in_repo = order_repo.get_by_user_id(DUMMY_USER_ID)[0]
         assert order_response["id"] == order_in_repo.id
 
 
 def create_product(product: Product, repository_session: RepositorySession):
-    product_repository = get_product_repository()
+    product_repository = product_repository_factory(repository_session.new_operator)
     with repository_session:
-        product_repository.save(product, repository_session)
+        product_repository.save(product)
         repository_session.commit()
 
 
 def create_user(user: User, repository_session: RepositorySession):
-    user_repository = get_user_repository()
+    user_repository = user_repository_factory(repository_session.new_operator)
     with repository_session:
-        user_repository.save(user, repository_session)
+        user_repository.save(user)
         repository_session.commit()
