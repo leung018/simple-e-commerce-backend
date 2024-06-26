@@ -40,9 +40,9 @@ def place_order(
     purchase_info: PurchaseInfo,
     repository_session: RepositorySession = Depends(get_repository_session),
 ):
-    user_repository = user_repository_factory(repository_session.get_operator)
-    product_repository = product_repository_factory(repository_session.get_operator)
-    order_repository = order_repository_factory(repository_session.get_operator)
+    user_repository = user_repository_factory(repository_session.new_operator)
+    product_repository = product_repository_factory(repository_session.new_operator)
+    order_repository = order_repository_factory(repository_session.new_operator)
 
     order_service = OrderService(
         user_repository, product_repository, order_repository, repository_session
@@ -54,7 +54,7 @@ def place_order(
 def get_orders(
     repository_session: RepositorySession = Depends(get_repository_session),
 ):
-    order_repository = order_repository_factory(repository_session.get_operator)
+    order_repository = order_repository_factory(repository_session.new_operator)
     with repository_session:
         orders = order_repository.get_by_user_id(DUMMY_USER_ID)
     return list(map(OrderModel.from_domain, orders))

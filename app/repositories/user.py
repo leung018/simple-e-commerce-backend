@@ -24,8 +24,8 @@ class UserRepository(AbstractRepository[Operator]):
         pass
 
 
-def user_repository_factory(get_operator):
-    return PostgresUserRepository(get_operator)
+def user_repository_factory(new_operator):
+    return PostgresUserRepository(new_operator)
 
 
 class PostgresUserRepository(UserRepository[Cursor]):
@@ -41,7 +41,7 @@ class PostgresUserRepository(UserRepository[Cursor]):
     """
 
     def save(self, user: User):
-        with self.get_operator() as cur:
+        with self.new_operator() as cur:
             cur.execute(
                 """
                 INSERT INTO users (id, balance)
@@ -53,7 +53,7 @@ class PostgresUserRepository(UserRepository[Cursor]):
             )
 
     def get_by_id(self, user_id: str) -> User:
-        with self.get_operator() as cur:
+        with self.new_operator() as cur:
             cur.execute(
                 "SELECT id, balance FROM users WHERE id = %s;",
                 (user_id,),

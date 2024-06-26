@@ -25,8 +25,8 @@ class AuthRecordRepository(AbstractRepository[Operator]):
         pass
 
 
-def auth_record_repository_factory(get_operator):
-    return PostgresAuthRecordRepository(get_operator)
+def auth_record_repository_factory(new_operator):
+    return PostgresAuthRecordRepository(new_operator)
 
 
 class PostgresAuthRecordRepository(AuthRecordRepository[Cursor]):
@@ -43,7 +43,7 @@ class PostgresAuthRecordRepository(AuthRecordRepository[Cursor]):
     """
 
     def add(self, auth_record: AuthRecord):
-        with self.get_operator() as cursor:
+        with self.new_operator() as cursor:
             cursor.execute(
                 "INSERT INTO auth_records (user_id, username, hashed_password) VALUES (%s, %s, %s);",
                 (
@@ -54,7 +54,7 @@ class PostgresAuthRecordRepository(AuthRecordRepository[Cursor]):
             )
 
     def get_by_username(self, username: str) -> AuthRecord:
-        with self.get_operator() as cursor:
+        with self.new_operator() as cursor:
             cursor.execute(
                 "SELECT user_id, username, hashed_password FROM auth_records WHERE username = %s;",
                 (username,),

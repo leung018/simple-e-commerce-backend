@@ -24,8 +24,8 @@ class ProductRepository(AbstractRepository[Operator]):
         pass
 
 
-def product_repository_factory(get_operator):
-    return PostgresProductRepository(get_operator)
+def product_repository_factory(new_operator):
+    return PostgresProductRepository(new_operator)
 
 
 class PostgresProductRepository(ProductRepository[Cursor]):
@@ -43,7 +43,7 @@ class PostgresProductRepository(ProductRepository[Cursor]):
     """
 
     def save(self, product: Product):
-        with self.get_operator() as cur:
+        with self.new_operator() as cur:
             cur.execute(
                 """
                     INSERT INTO products (id, name, category, price, quantity)
@@ -65,7 +65,7 @@ class PostgresProductRepository(ProductRepository[Cursor]):
             )
 
     def get_by_id(self, product_id: str) -> Product:
-        with self.get_operator() as cur:
+        with self.new_operator() as cur:
             cur.execute(
                 "SELECT id, name, category, price, quantity FROM products WHERE id = %s;",
                 (product_id,),

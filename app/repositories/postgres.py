@@ -47,7 +47,7 @@ class PostgresSession(RepositorySession):
             port=self._config.port,
         )
 
-    def get_operator(self):
+    def new_operator(self):
         return self._conn.cursor()
 
     def commit(self):

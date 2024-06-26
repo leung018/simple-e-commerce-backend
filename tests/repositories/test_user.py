@@ -9,7 +9,7 @@ from tests.models.constructor import new_user
 
 def test_should_save_and_get_user(repository_session: PostgresSession):
     user = new_user()
-    user_repository = PostgresUserRepository(repository_session.get_operator)
+    user_repository = PostgresUserRepository(repository_session.new_operator)
     with repository_session:
         user_repository.save(user)
         assert user == user_repository.get_by_id(user.id)
@@ -18,7 +18,7 @@ def test_should_save_and_get_user(repository_session: PostgresSession):
 def test_should_raise_not_found_if_user_id_not_exist(
     repository_session: PostgresSession,
 ):
-    user_repository = PostgresUserRepository(repository_session.get_operator)
+    user_repository = PostgresUserRepository(repository_session.new_operator)
 
     with repository_session:
         with pytest.raises(EntityNotFoundError):
@@ -27,7 +27,7 @@ def test_should_raise_not_found_if_user_id_not_exist(
 
 def test_should_save_able_to_update_user(repository_session: PostgresSession):
     user = new_user(balance=99)
-    user_repository = PostgresUserRepository(repository_session.get_operator)
+    user_repository = PostgresUserRepository(repository_session.new_operator)
     with repository_session:
         user_repository.save(user)
 

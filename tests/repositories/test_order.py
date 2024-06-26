@@ -5,7 +5,7 @@ from tests.models.constructor import new_order
 
 def test_should_save_and_get_by_user_id(repository_session: PostgresSession):
     order = new_order(user_id="u1")
-    order_repository = PostgresOrderRepository(repository_session.get_operator)
+    order_repository = PostgresOrderRepository(repository_session.new_operator)
     with repository_session:
         order_repository.add(order)
 
@@ -22,7 +22,7 @@ def test_should_get_by_user_id_return_the_orders_with_more_recently_created_at_f
     order1 = new_order(id="p0", user_id="u1")
     order2 = new_order(id="p1", user_id="u1")
 
-    order_repository = PostgresOrderRepository(repository_session.get_operator)
+    order_repository = PostgresOrderRepository(repository_session.new_operator)
     with repository_session:
         # explicitly commit here after each time of adding order, so there will be difference in the creation time in the record
         order_repository.add(order1)

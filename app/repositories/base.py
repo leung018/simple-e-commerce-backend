@@ -36,9 +36,9 @@ class RepositorySession(ABC, Generic[Operator]):
         self.rollback()
 
     @abstractmethod
-    def get_operator(self) -> Operator:
+    def new_operator(self) -> Operator:
         """
-        Retrieves an instance of Operator that is used for database interactions within the repository.
+        Return a new instance of Operator that is used for database interactions within the repository.
 
         This method can be passed to the constructor of a class implementing AbstractRepository.
 
@@ -58,11 +58,11 @@ class RepositorySession(ABC, Generic[Operator]):
 
 
 class AbstractRepository(ABC, Generic[Operator]):
-    def __init__(self, get_operator: Callable[[], Operator]):
+    def __init__(self, new_operator: Callable[[], Operator]):
         """
         Args:
-           get_operator (Callable[[], Operator]): A factory method that returns an instance of Operator.
+           new_operator (Callable[[], Operator]): A factory method that returns an instance of Operator.
                 This callable is expected to be provided by an implementation of the RepositorySession class.
-                Also see the comment of get_operator in the RepositorySession class.
+                Also see the comment of new_operator in the RepositorySession class.
         """
-        self.get_operator = get_operator
+        self.new_operator = new_operator

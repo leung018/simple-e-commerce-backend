@@ -47,20 +47,20 @@ def test_should_place_order_and_get_placed_order(repository_session: RepositoryS
 
     # check order id in response same as the one stored in repository
     with repository_session:
-        order_repo = order_repository_factory(repository_session.get_operator)
+        order_repo = order_repository_factory(repository_session.new_operator)
         order_in_repo = order_repo.get_by_user_id(DUMMY_USER_ID)[0]
         assert order_response["id"] == order_in_repo.id
 
 
 def create_product(product: Product, repository_session: RepositorySession):
-    product_repository = product_repository_factory(repository_session.get_operator)
+    product_repository = product_repository_factory(repository_session.new_operator)
     with repository_session:
         product_repository.save(product)
         repository_session.commit()
 
 
 def create_user(user: User, repository_session: RepositorySession):
-    user_repository = user_repository_factory(repository_session.get_operator)
+    user_repository = user_repository_factory(repository_session.new_operator)
     with repository_session:
         user_repository.save(user)
         repository_session.commit()

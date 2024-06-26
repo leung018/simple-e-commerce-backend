@@ -9,7 +9,7 @@ from tests.models.constructor import new_product
 
 def test_should_save_and_get_product(repository_session: PostgresSession):
     product = new_product()
-    product_repository = PostgresProductRepository(repository_session.get_operator)
+    product_repository = PostgresProductRepository(repository_session.new_operator)
     with repository_session:
         product_repository.save(product)
         assert product == product_repository.get_by_id(
@@ -20,7 +20,7 @@ def test_should_save_and_get_product(repository_session: PostgresSession):
 def test_should_raise_not_found_if_product_id_not_exist(
     repository_session: PostgresSession,
 ):
-    product_repository = PostgresProductRepository(repository_session.get_operator)
+    product_repository = PostgresProductRepository(repository_session.new_operator)
     with repository_session:
         with pytest.raises(EntityNotFoundError):
             product_repository.get_by_id(
@@ -30,7 +30,7 @@ def test_should_raise_not_found_if_product_id_not_exist(
 
 def test_should_save_able_to_update_product(repository_session: PostgresSession):
     product = new_product(name="old name", category="old category", price=9, quantity=1)
-    product_repository = PostgresProductRepository(repository_session.get_operator)
+    product_repository = PostgresProductRepository(repository_session.new_operator)
     with repository_session:
         product_repository.save(product)
 

@@ -25,8 +25,8 @@ class OrderRepository(AbstractRepository[Operator]):
         pass
 
 
-def order_repository_factory(get_operator):
-    return PostgresOrderRepository(get_operator)
+def order_repository_factory(new_operator):
+    return PostgresOrderRepository(new_operator)
 
 
 class PostgresOrderRepository(OrderRepository[Cursor]):
@@ -48,7 +48,7 @@ class PostgresOrderRepository(OrderRepository[Cursor]):
     """
 
     def add(self, order: Order):
-        with self.get_operator() as cursor:
+        with self.new_operator() as cursor:
             cursor.execute(
                 "INSERT INTO orders (id, user_id) VALUES (%s, %s)",
                 (order.id, order.user_id),
@@ -61,7 +61,7 @@ class PostgresOrderRepository(OrderRepository[Cursor]):
 
     def get_by_user_id(self, user_id: str) -> list[Order]:
         orders = []
-        with self.get_operator() as cursor:
+        with self.new_operator() as cursor:
             cursor.execute(
                 "SELECT id, created_at FROM orders WHERE user_id = %s ORDER BY created_at DESC;",
                 (user_id,),
@@ -75,7 +75,7 @@ class PostgresOrderRepository(OrderRepository[Cursor]):
             return orders
 
     def _get_order_items(self, order_id) -> tuple[OrderItem, ...]:
-        with self.get_operator() as cursor:
+        with self.new_operator() as cursor:
             cursor.execute(
                 "SELECT product_id, quantity FROM order_items WHERE order_id = %s",
                 (order_id,),
