@@ -26,7 +26,7 @@ def override_repository_session_dependency(repository_session):
     app.dependency_overrides[get_repository_session] = my_get_repository_session
 
 
-def test_should_sign_up_and_login_response_properly():
+def test_should_sign_up_and_login_respond_properly():
     response = call_sign_up_api("myname", "mypassword")
     assert response.status_code == 201
 
