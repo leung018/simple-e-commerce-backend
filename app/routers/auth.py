@@ -63,10 +63,10 @@ def login_for_access_token(
     )
 
     try:
-        auth_service.get_access_token(
+        access_token = auth_service.get_access_token(
             AuthInput(username=form_data.username, password=form_data.password)
         )
     except GetAccessTokenError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    return Token(access_token="todo", token_type="bearer")
+    return Token(access_token=access_token, token_type="bearer")

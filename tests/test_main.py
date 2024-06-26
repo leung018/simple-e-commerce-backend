@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 import pytest
 
+from app.auth import auth_service_factory
 from app.dependencies import (
     get_repository_session,
 )
@@ -11,9 +12,8 @@ from app.repositories.order import order_repository_factory
 from app.repositories.product import product_repository_factory
 from app.repositories.base import RepositorySession
 from app.repositories.user import user_repository_factory
-from app.routers.orders import DUMMY_USER_ID
 from app.services.auth import GetAccessTokenError, RegisterUserError
-from tests.models.constructor import new_product, new_user
+from tests.models.constructor import new_product
 
 client = TestClient(app)
 
@@ -61,9 +61,8 @@ def test_should_place_order_and_get_placed_order(repository_session: RepositoryS
     call_sign_up_api("myname", "mypassword")
     access_token = call_login_api("myname", "mypassword").json()["access_token"]
 
-    # place order api
     response = call_place_order_api(
-        access_token, [{"id": product.id, "purchase_quantity": 5}]
+        access_token, [{"product_id": product.id, "quantity": 5}]
     )
     assert response.status_code == 201
 
@@ -76,9 +75,10 @@ def test_should_place_order_and_get_placed_order(repository_session: RepositoryS
     assert order_response["items"] == [{"id": product.id, "purchase_quantity": 5}]
 
     # check order id in response same as the one stored in repository
+    user_id = auth_service_factory(repository_session).decode_user_id(access_token)
     with repository_session:
         order_repo = order_repository_factory(repository_session.new_operator)
-        order_in_repo = order_repo.get_by_user_id(DUMMY_USER_ID)[0]
+        order_in_repo = order_repo.get_by_user_id(user_id)[0]
         assert order_response["id"] == order_in_repo.id
 
 
