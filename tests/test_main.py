@@ -55,6 +55,19 @@ def test_should_reject_register_with_same_user():
     assert response.json() == {"detail": "username: user1 already exists"}
 
 
+def test_should_reject_login_with_wrong_password():
+    response = client.post(
+        "/auth/signup", json={"username": "user1", "password": "mypassword"}
+    )
+    assert response.status_code == 201
+    response = client.post(
+        "/auth/login",
+        data={"username": "user1", "password": "mypassword2"},
+    )
+    assert response.status_code == 400
+    assert response.json() == {"detail": "username or password is not correct"}
+
+
 def test_should_place_order_and_get_placed_order(repository_session: RepositorySession):
     product = new_product(quantity=10, price=1)
     create_product(product, repository_session)
