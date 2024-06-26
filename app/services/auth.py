@@ -81,7 +81,6 @@ class AuthService(Generic[S]):
 
     def _new_user(self):
         user = User(id=str(uuid4()), balance=USER_INITIAL_BALANCE)
-        self._user_repository.save(user, self._session)
         return user
 
     def _new_auth_record(self, new_user_id: str, auth_input: AuthInput):
