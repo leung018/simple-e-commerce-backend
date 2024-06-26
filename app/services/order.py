@@ -13,7 +13,8 @@ Operator = TypeVar("Operator")
 
 
 class PlaceOrderError(MyValueError):
-    pass
+    QUANTITY_NOT_ENOUGH_ERROR = "quantity of product is not enough for your purchase"
+    BALANCE_NOT_ENOUGH_ERROR = "not enough balance"
 
 
 class OrderService(Generic[Operator]):
@@ -55,14 +56,14 @@ class OrderService(Generic[Operator]):
 
     def _update_product_inventory(self, product: Product, purchase_quantity: int):
         if product.quantity < purchase_quantity:
-            raise PlaceOrderError("quantity of product is not enough for your purchase")
+            raise PlaceOrderError(PlaceOrderError.QUANTITY_NOT_ENOUGH_ERROR)
 
         product.quantity -= purchase_quantity
         self._product_repository.save(product)
 
     def _make_payment(self, user: User, total_price: float):
         if total_price > user.balance:
-            raise PlaceOrderError("not enough balance")
+            raise PlaceOrderError(PlaceOrderError.BALANCE_NOT_ENOUGH_ERROR)
 
         user.balance -= total_price
         self._user_repository.save(user)
