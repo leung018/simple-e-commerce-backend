@@ -5,7 +5,6 @@ from typing import Callable, Generic, TypeVar
 import jwt
 import pytest
 
-from app.dependencies import get_auth_record_repository, get_user_repository
 from app.models.auth import AuthInput
 from app.models.user import USER_INITIAL_BALANCE
 from app.repositories.auth import (
