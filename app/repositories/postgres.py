@@ -13,16 +13,16 @@ class PostgresConfig:
     password: str
     database: str
 
-
-def new_postgres_config_from_env() -> PostgresConfig:
-    host = os.environ.get("POSTGRES_HOST", "localhost")
-    port = int(os.getenv("POSTGRES_PORT", "5432"))
-    user = os.getenv("POSTGRES_USER", "admin")
-    password = os.getenv("POSTGRES_PASSWORD", "password")
-    database = os.getenv("POSTGRES_DB", "db")
-    return PostgresConfig(
-        host=host, port=port, user=user, password=password, database=database
-    )
+    @staticmethod
+    def from_env():
+        host = os.getenv("POSTGRES_HOST", "localhost")
+        port = int(os.getenv("POSTGRES_PORT", "5432"))
+        user = os.getenv("POSTGRES_USER", "admin")
+        password = os.getenv("POSTGRES_PASSWORD", "password")
+        database = os.getenv("POSTGRES_DB", "db")
+        return PostgresConfig(
+            host=host, port=port, user=user, password=password, database=database
+        )
 
 
 class PostgresSession(RepositorySession):
