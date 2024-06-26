@@ -58,7 +58,7 @@ class AuthService(Generic[S]):
 
     def register_user(self, auth_input: AuthInput):
         with self._session:
-            if self._get_auth_record_by_username(auth_input.username):
+            if self._get_auth_record(auth_input.username):
                 raise RegisterUserError(
                     "username: {} already exists".format(auth_input.username)
                 )
@@ -83,7 +83,7 @@ class AuthService(Generic[S]):
             username=auth_input.username,
         )
 
-    def _get_auth_record_by_username(self, username: str) -> Optional[AuthRecord]:
+    def _get_auth_record(self, username: str) -> Optional[AuthRecord]:
         try:
             return self._auth_repository.get_by_username(username, self._session)
         except EntityNotFoundError:
@@ -91,7 +91,7 @@ class AuthService(Generic[S]):
 
     def get_access_token(self, auth_input: AuthInput) -> str:
         with self._session:
-            auth_record = self._get_auth_record_by_username(auth_input.username)
+            auth_record = self._get_auth_record(auth_input.username)
 
             if not auth_record or not is_password_valid(
                 auth_input.password, auth_record.hashed_password
