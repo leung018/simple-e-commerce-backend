@@ -34,9 +34,9 @@ class AuthServiceFixture(Generic[Operator]):
     auth_service_factory: Callable[[AuthServiceConfig], AuthService[Operator]]
     session: RepositorySession[Operator]
 
-    def register_user(self, auth_input: AuthInput):
+    def sign_up(self, auth_input: AuthInput):
         auth_service = self.auth_service_factory(self.auth_service_config)
-        auth_service.register_user(auth_input)
+        auth_service.sign_up(auth_input)
 
     def get_access_token(self, auth_input: AuthInput, expire_days: int = 7):
         auth_config = replace(
@@ -85,7 +85,7 @@ def auth_service_fixture(repository_session: RepositorySession):
 def test_should_register_user_create_new_user_with_initial_balance(
     auth_service_fixture: AuthServiceFixture,
 ):
-    auth_service_fixture.register_user(new_auth_input(username="uname"))
+    auth_service_fixture.sign_up(new_auth_input(username="uname"))
     assert (
         auth_service_fixture.get_user_by_username("uname").balance
         == USER_INITIAL_BALANCE
@@ -95,40 +95,40 @@ def test_should_register_user_create_new_user_with_initial_balance(
 def test_should_not_allow_register_user_with_existing_username(
     auth_service_fixture: AuthServiceFixture,
 ):
-    auth_service_fixture.register_user(new_auth_input(username="uname"))
+    auth_service_fixture.sign_up(new_auth_input(username="uname"))
     with pytest.raises(RegisterUserError) as exc_info:
-        auth_service_fixture.register_user(new_auth_input(username="uname"))
-    assert "username: uname already exists" == str(exc_info.value)
+        auth_service_fixture.sign_up(new_auth_input(username="uname"))
+    assert RegisterUserError.format_username_exists_error("uname") == str(
+        exc_info.value
+    )
 
     # using different username can be success
-    auth_service_fixture.register_user(new_auth_input(username="uname2"))
+    auth_service_fixture.sign_up(new_auth_input(username="uname2"))
 
 
 def test_should_not_able_to_get_access_token_if_username_or_password_not_match(
     auth_service_fixture: AuthServiceFixture,
 ):
-    auth_service_fixture.register_user(
-        new_auth_input(username="uname", password="password")
-    )
+    auth_service_fixture.sign_up(new_auth_input(username="uname", password="password"))
 
     with pytest.raises(GetAccessTokenError) as exc_info:
         auth_service_fixture.get_access_token(
             new_auth_input(username="unaem", password="password")
         )
-    assert "username or password is not correct" == str(exc_info.value)
+    assert GetAccessTokenError.USERNAME_OR_PASSWORD_ERROR == str(exc_info.value)
 
     with pytest.raises(GetAccessTokenError) as exc_info:
         auth_service_fixture.get_access_token(
             new_auth_input(username="uname", password="passwodr")
         )
-    assert "username or password is not correct" == str(exc_info.value)
+    assert GetAccessTokenError.USERNAME_OR_PASSWORD_ERROR == str(exc_info.value)
 
 
 def test_should_able_to_decode_user_id(
     auth_service_fixture: AuthServiceFixture,
 ):
     auth_input = new_auth_input(username="uname")
-    auth_service_fixture.register_user(auth_input)
+    auth_service_fixture.sign_up(auth_input)
 
     token = auth_service_fixture.get_access_token(auth_input)
     user_id = auth_service_fixture.decode_user_id(token)
@@ -140,7 +140,7 @@ def test_should_set_expire_time_of_access_token(
     auth_service_fixture: AuthServiceFixture,
 ):
     auth_input = new_auth_input()
-    auth_service_fixture.register_user(auth_input)
+    auth_service_fixture.sign_up(auth_input)
     token = auth_service_fixture.get_access_token(auth_input, expire_days=1)
     decoded_token = jwt.decode(token, options={"verify_signature": False})
 
@@ -155,7 +155,7 @@ def test_should_raise_exception_if_decode_an_expired_token(
     auth_service_fixture: AuthServiceFixture,
 ):
     auth_input = new_auth_input()
-    auth_service_fixture.register_user(auth_input)
+    auth_service_fixture.sign_up(auth_input)
     token = auth_service_fixture.get_access_token(auth_input, expire_days=-1)
 
     with pytest.raises(DecodeAccessTokenError):

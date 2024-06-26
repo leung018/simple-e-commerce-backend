@@ -18,11 +18,13 @@ Operator = TypeVar("Operator")
 
 
 class RegisterUserError(MyValueError):
-    pass
+    @staticmethod
+    def format_username_exists_error(username: str):
+        return f"username: {username} already exists"
 
 
 class GetAccessTokenError(MyValueError):
-    pass
+    USERNAME_OR_PASSWORD_ERROR = "username or password is not correct"
 
 
 class DecodeAccessTokenError(MyValueError):
@@ -64,11 +66,11 @@ class AuthService(Generic[Operator]):
         self._auth_repository = auth_repository
         self._session = repository_session
 
-    def register_user(self, auth_input: AuthInput):
+    def sign_up(self, auth_input: AuthInput):
         with self._session:
             if self._get_auth_record(auth_input.username):
                 raise RegisterUserError(
-                    "username: {} already exists".format(auth_input.username)
+                    RegisterUserError.format_username_exists_error(auth_input.username)
                 )
 
             user = self._new_user()
@@ -100,7 +102,9 @@ class AuthService(Generic[Operator]):
             if not auth_record or not is_password_valid(
                 auth_input.password, auth_record.hashed_password
             ):
-                raise GetAccessTokenError("username or password is not correct")
+                raise GetAccessTokenError(
+                    GetAccessTokenError.USERNAME_OR_PASSWORD_ERROR
+                )
 
             user = self._user_repository.get_by_id(auth_record.user_id)
 

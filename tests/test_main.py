@@ -12,6 +12,7 @@ from app.repositories.product import product_repository_factory
 from app.repositories.base import RepositorySession
 from app.repositories.user import user_repository_factory
 from app.routers.orders import DUMMY_USER_ID
+from app.services.auth import GetAccessTokenError, RegisterUserError
 from tests.models.constructor import new_product, new_user
 
 client = TestClient(app)
@@ -23,6 +24,51 @@ def override_repository_session_dependency(repository_session):
         return repository_session
 
     app.dependency_overrides[get_repository_session] = my_get_repository_session
+
+
+def test_should_sign_up_and_login():
+    # sign up
+    response = client.post(
+        "/auth/signup", json={"username": "myname", "password": "mypassword"}
+    )
+    assert response.status_code == 201
+
+    # login
+    response = client.post(
+        "/auth/login",
+        data={"username": "myname", "password": "mypassword"},
+    )
+    assert response.status_code == 200
+    assert response.json()["access_token"]
+    assert response.json()["token_type"] == "bearer"
+
+
+def test_should_reject_register_with_same_user():
+    response = client.post(
+        "/auth/signup", json={"username": "user1", "password": "mypassword"}
+    )
+    assert response.status_code == 201
+    response = client.post(
+        "/auth/signup",
+        json={"username": "user1", "password": "mypassword2"},
+    )
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": RegisterUserError.format_username_exists_error("user1")
+    }
+
+
+def test_should_reject_login_with_wrong_password():
+    response = client.post(
+        "/auth/signup", json={"username": "user1", "password": "mypassword"}
+    )
+    assert response.status_code == 201
+    response = client.post(
+        "/auth/login",
+        data={"username": "user1", "password": "mypassword2"},
+    )
+    assert response.status_code == 400
+    assert response.json() == {"detail": GetAccessTokenError.USERNAME_OR_PASSWORD_ERROR}
 
 
 def test_should_place_order_and_get_placed_order(repository_session: RepositorySession):
