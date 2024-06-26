@@ -32,7 +32,10 @@ class AuthServiceConfig:
 
     @staticmethod
     def from_env():
-        jwt_secret_key = os.getenv("JWT_SECRET_KEY", "localhost")
+        jwt_secret_key = os.getenv(
+            "JWT_SECRET_KEY",
+            "700ff87314881a7ea2fa0f7b451280006dbc657ecc2537925dbb947613f5dd22",
+        )
         jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
         access_token_expire_days = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS", 7))
 
