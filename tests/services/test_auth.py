@@ -98,7 +98,9 @@ def test_should_not_allow_register_user_with_existing_username(
     auth_service_fixture.sign_up(new_auth_input(username="uname"))
     with pytest.raises(RegisterUserError) as exc_info:
         auth_service_fixture.sign_up(new_auth_input(username="uname"))
-    assert RegisterUserError.format_username_exists_error("uname") == str(exc_info.value)
+    assert RegisterUserError.format_username_exists_error("uname") == str(
+        exc_info.value
+    )
 
     # using different username can be success
     auth_service_fixture.sign_up(new_auth_input(username="uname2"))
