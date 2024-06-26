@@ -24,6 +24,10 @@ class ProductRepositoryInterface(AbstractRepository[Operator]):
         pass
 
 
+def product_repository_factory(get_operator):
+    return PostgresProductRepository(get_operator)
+
+
 class PostgresProductRepository(ProductRepositoryInterface[Cursor]):
     CREATE_TABLE_IF_NOT_EXISTS = """
         CREATE TABLE IF NOT EXISTS products (

@@ -25,6 +25,10 @@ class AuthRecordRepositoryInterface(AbstractRepository[Operator]):
         pass
 
 
+def auth_record_repository_factory(get_operator):
+    return PostgresAuthRecordRepository(get_operator)
+
+
 class PostgresAuthRecordRepository(AuthRecordRepositoryInterface[Cursor]):
     CREATE_TABLE_IF_NOT_EXISTS = """
         CREATE TABLE IF NOT EXISTS auth_records (

@@ -1,11 +1,10 @@
-from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
+from abc import abstractmethod
+from typing import TypeVar
 
 from psycopg import Cursor
 from app.models.user import User
 from app.repositories.err import EntityNotFoundError
-from app.repositories.postgres import PostgresSession
-from app.repositories.session import AbstractRepository, RepositorySession
+from app.repositories.session import AbstractRepository
 
 
 Operator = TypeVar("Operator")
@@ -23,6 +22,10 @@ class UserRepositoryInterface(AbstractRepository[Operator]):
             EntityNotFoundError: If no user is found with the provided id.
         """
         pass
+
+
+def user_repository_factory(get_operator):
+    return PostgresUserRepository(get_operator)
 
 
 class PostgresUserRepository(UserRepositoryInterface[Cursor]):
