@@ -5,13 +5,13 @@ import pytest
 from app.models.order import Order, OrderItem, PurchaseInfo
 from app.models.product import Product
 from app.models.user import User
-from app.repositories.order import OrderRepositoryInterface, order_repository_factory
+from app.repositories.order import OrderRepository, order_repository_factory
 from app.repositories.product import (
-    ProductRepositoryInterface,
+    ProductRepository,
     product_repository_factory,
 )
 from app.repositories.base import RepositorySession
-from app.repositories.user import UserRepositoryInterface, user_repository_factory
+from app.repositories.user import UserRepository, user_repository_factory
 from app.services.order import OrderService, PlaceOrderError
 from tests.models.constructor import new_product, new_user
 
@@ -21,9 +21,9 @@ Operator = TypeVar("Operator")
 @dataclass
 class OrderServiceFixture(Generic[Operator]):
     order_service: OrderService[Operator]
-    user_repository: UserRepositoryInterface[Operator]
-    product_repository: ProductRepositoryInterface[Operator]
-    order_repository: OrderRepositoryInterface[Operator]
+    user_repository: UserRepository[Operator]
+    product_repository: ProductRepository[Operator]
+    order_repository: OrderRepository[Operator]
     session: RepositorySession[Operator]
 
     def save_user(self, user: User):

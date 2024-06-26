@@ -9,7 +9,7 @@ from app.repositories.base import AbstractRepository
 Operator = TypeVar("Operator")
 
 
-class OrderRepositoryInterface(AbstractRepository[Operator]):
+class OrderRepository(AbstractRepository[Operator]):
     @abstractmethod
     def add(self, order: Order):
         pass
@@ -29,7 +29,7 @@ def order_repository_factory(get_operator):
     return PostgresOrderRepository(get_operator)
 
 
-class PostgresOrderRepository(OrderRepositoryInterface[Cursor]):
+class PostgresOrderRepository(OrderRepository[Cursor]):
     CREATE_TABLES_IF_NOT_EXISTS = """
         CREATE TABLE IF NOT EXISTS orders (
             id VARCHAR(36) PRIMARY KEY,

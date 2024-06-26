@@ -10,7 +10,7 @@ from app.repositories.base import AbstractRepository
 Operator = TypeVar("Operator")
 
 
-class UserRepositoryInterface(AbstractRepository[Operator]):
+class UserRepository(AbstractRepository[Operator]):
     @abstractmethod
     def save(self, user: User):
         pass
@@ -28,7 +28,7 @@ def user_repository_factory(get_operator):
     return PostgresUserRepository(get_operator)
 
 
-class PostgresUserRepository(UserRepositoryInterface[Cursor]):
+class PostgresUserRepository(UserRepository[Cursor]):
     CREATE_TABLE_IF_NOT_EXISTS = """
         CREATE TABLE IF NOT EXISTS users (
             id VARCHAR PRIMARY KEY,

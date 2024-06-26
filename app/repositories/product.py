@@ -10,7 +10,7 @@ from app.repositories.base import AbstractRepository
 Operator = TypeVar("Operator")
 
 
-class ProductRepositoryInterface(AbstractRepository[Operator]):
+class ProductRepository(AbstractRepository[Operator]):
     @abstractmethod
     def save(self, product: Product):
         pass
@@ -28,7 +28,7 @@ def product_repository_factory(get_operator):
     return PostgresProductRepository(get_operator)
 
 
-class PostgresProductRepository(ProductRepositoryInterface[Cursor]):
+class PostgresProductRepository(ProductRepository[Cursor]):
     CREATE_TABLE_IF_NOT_EXISTS = """
         CREATE TABLE IF NOT EXISTS products (
             id VARCHAR PRIMARY KEY,

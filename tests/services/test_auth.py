@@ -8,11 +8,11 @@ import pytest
 from app.models.auth import AuthInput
 from app.models.user import USER_INITIAL_BALANCE
 from app.repositories.auth import (
-    AuthRecordRepositoryInterface,
+    AuthRecordRepository,
     auth_record_repository_factory,
 )
 from app.repositories.base import RepositorySession
-from app.repositories.user import UserRepositoryInterface, user_repository_factory
+from app.repositories.user import UserRepository, user_repository_factory
 from app.services.auth import (
     AuthService,
     AuthServiceConfig,
@@ -28,8 +28,8 @@ Operator = TypeVar("Operator")
 
 @dataclass
 class AuthServiceFixture(Generic[Operator]):
-    user_repository: UserRepositoryInterface[Operator]
-    auth_record_repository: AuthRecordRepositoryInterface[Operator]
+    user_repository: UserRepository[Operator]
+    auth_record_repository: AuthRecordRepository[Operator]
     auth_service_config: AuthServiceConfig
     auth_service_factory: Callable[[AuthServiceConfig], AuthService[Operator]]
     session: RepositorySession[Operator]

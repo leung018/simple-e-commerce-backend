@@ -11,7 +11,7 @@ from app.repositories.base import AbstractRepository
 Operator = TypeVar("Operator")
 
 
-class AuthRecordRepositoryInterface(AbstractRepository[Operator]):
+class AuthRecordRepository(AbstractRepository[Operator]):
     @abstractmethod
     def add(self, auth_record: AuthRecord):
         pass
@@ -29,7 +29,7 @@ def auth_record_repository_factory(get_operator):
     return PostgresAuthRecordRepository(get_operator)
 
 
-class PostgresAuthRecordRepository(AuthRecordRepositoryInterface[Cursor]):
+class PostgresAuthRecordRepository(AuthRecordRepository[Cursor]):
     CREATE_TABLE_IF_NOT_EXISTS = """
         CREATE TABLE IF NOT EXISTS auth_records (
             user_id VARCHAR PRIMARY KEY,

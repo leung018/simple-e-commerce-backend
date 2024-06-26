@@ -4,10 +4,10 @@ from app.err import MyValueError
 from app.models.order import Order, PurchaseInfo
 from app.models.product import Product
 from app.models.user import User
-from app.repositories.order import OrderRepositoryInterface
-from app.repositories.product import ProductRepositoryInterface
+from app.repositories.order import OrderRepository
+from app.repositories.product import ProductRepository
 from app.repositories.base import RepositorySession
-from app.repositories.user import UserRepositoryInterface
+from app.repositories.user import UserRepository
 
 Operator = TypeVar("Operator")
 
@@ -19,9 +19,9 @@ class PlaceOrderError(MyValueError):
 class OrderService(Generic[Operator]):
     def __init__(
         self,
-        user_repository: UserRepositoryInterface[Operator],
-        product_repository: ProductRepositoryInterface[Operator],
-        order_repository: OrderRepositoryInterface[Operator],
+        user_repository: UserRepository[Operator],
+        product_repository: ProductRepository[Operator],
+        order_repository: OrderRepository[Operator],
         repository_session: RepositorySession[Operator],
     ):
         self._user_repository = user_repository
