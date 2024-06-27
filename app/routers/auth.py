@@ -3,14 +3,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 
+from app.auth import auth_service_factory
 from app.dependencies import get_repository_session
 from app.models.auth import AuthInput
-from app.repositories.auth import auth_record_repository_factory
 from app.repositories.base import RepositorySession
-from app.repositories.user import user_repository_factory
 from app.services.auth import (
-    AuthService,
-    AuthServiceConfig,
     GetAccessTokenError,
     RegisterUserError,
 )
@@ -27,18 +24,9 @@ class Token(BaseModel):
 @router.post("/signup", status_code=201)
 def sign_up(
     auth_input: AuthInput,
-    repository_session: RepositorySession = Depends(get_repository_session),
+    repository_session: Annotated[RepositorySession, Depends(get_repository_session)],
 ):
-    user_repository = user_repository_factory(repository_session.new_operator)
-    auth_record_repository = auth_record_repository_factory(
-        repository_session.new_operator
-    )
-    auth_service = AuthService(
-        AuthServiceConfig.from_env(),
-        user_repository,
-        auth_record_repository,
-        repository_session,
-    )
+    auth_service = auth_service_factory(repository_session)
 
     try:
         auth_service.sign_up(auth_input)
@@ -49,24 +37,15 @@ def sign_up(
 @router.post("/login")
 def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    repository_session: RepositorySession = Depends(get_repository_session),
+    repository_session: Annotated[RepositorySession, Depends(get_repository_session)],
 ):
-    user_repository = user_repository_factory(repository_session.new_operator)
-    auth_record_repository = auth_record_repository_factory(
-        repository_session.new_operator
-    )
-    auth_service = AuthService(
-        AuthServiceConfig.from_env(),
-        user_repository,
-        auth_record_repository,
-        repository_session,
-    )
+    auth_service = auth_service_factory(repository_session)
 
     try:
-        auth_service.get_access_token(
+        access_token = auth_service.get_access_token(
             AuthInput(username=form_data.username, password=form_data.password)
         )
     except GetAccessTokenError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    return Token(access_token="todo", token_type="bearer")
+    return Token(access_token=access_token, token_type="bearer")
