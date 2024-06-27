@@ -55,20 +55,19 @@ def test_should_reject_login_with_wrong_password():
 
 
 def test_should_place_order_and_get_placed_order(repository_session: RepositorySession):
-    # Initialize product
     product = new_product(quantity=10, price=1)
     persist_product(product, repository_session)
 
-    # Initialize user
     call_sign_up_api("myname", "mypassword")
     access_token = call_login_api("myname", "mypassword").json()["access_token"]
 
+    # Place order
     response = call_place_order_api(
         access_token, [{"product_id": product.id, "quantity": 5}]
     )
     assert response.status_code == 201
 
-    # get orders api
+    # Get orders
     response = call_get_orders_api(access_token)
     assert response.status_code == 200
 
@@ -92,6 +91,8 @@ def test_should_response_400_if_my_value_error_throw_from_service_layer(
 
     call_sign_up_api("myname", "mypassword")
     access_token = call_login_api("myname", "mypassword").json()["access_token"]
+
+    # Both PlaceOrderError and EntityNotFoundError are MyValueError. Expecting a generic error handling when MyValueError is raised from service layer
 
     # Place order with quantity more than available
     response = call_place_order_api(
