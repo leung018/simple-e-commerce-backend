@@ -14,6 +14,9 @@ test:
 run-server:
 	export POSTGRES_DB=dev_db && \
 	${PATH_PREFIX}uvicorn app.main:app --reload
+import-products:
+	export POSTGRES_DB=dev_db && \
+	${BIN_DIR}python -m app.import_seed_data
 format-check:
 	${BIN_DIR}black . --check
 format:
