@@ -26,6 +26,13 @@ def override_repository_session_dependency(repository_session):
     app.dependency_overrides[get_repository_session] = my_get_repository_session
 
 
+def test_should_login_respond_400_when_input_invalid():
+    response = call_login_api(
+        username="1", password="1234567"
+    )  # username length not allow to be too short according to AuthInput rule. Expect the ValidationError raised from AuthInput can be handled
+    assert response.status_code == 400
+
+
 def test_should_sign_up_and_login_respond_properly():
     response = call_sign_up_api("myname", "mypassword")
     assert response.status_code == 201
@@ -55,20 +62,19 @@ def test_should_reject_login_with_wrong_password():
 
 
 def test_should_place_order_and_get_placed_order(repository_session: RepositorySession):
-    # Initialize product
     product = new_product(quantity=10, price=1)
     persist_product(product, repository_session)
 
-    # Initialize user
     call_sign_up_api("myname", "mypassword")
     access_token = call_login_api("myname", "mypassword").json()["access_token"]
 
+    # Place order
     response = call_place_order_api(
         access_token, [{"product_id": product.id, "quantity": 5}]
     )
     assert response.status_code == 201
 
-    # get orders api
+    # Get orders
     response = call_get_orders_api(access_token)
     assert response.status_code == 200
 
@@ -92,6 +98,8 @@ def test_should_response_400_if_my_value_error_throw_from_service_layer(
 
     call_sign_up_api("myname", "mypassword")
     access_token = call_login_api("myname", "mypassword").json()["access_token"]
+
+    # Both PlaceOrderError and EntityNotFoundError are subclass of MyValueError. Expecting a generic error handling when MyValueError is raised from service layer
 
     # Place order with quantity more than available
     response = call_place_order_api(
