@@ -1,11 +1,12 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.auth import get_current_user_id
 from app.dependencies import get_repository_session
+from app.err import MyValueError
 from app.models.order import Order, PurchaseInfo
-from app.repositories.order import OrderRepository, order_repository_factory
+from app.repositories.order import order_repository_factory
 from app.repositories.product import product_repository_factory
 from app.repositories.base import RepositorySession
 from app.repositories.user import user_repository_factory
@@ -48,7 +49,11 @@ def place_order(
     order_service = OrderService(
         user_repository, product_repository, order_repository, repository_session
     )
-    order_service.place_order(current_user_id, purchase_info)
+
+    try:
+        order_service.place_order(current_user_id, purchase_info)
+    except MyValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/", response_model=list[OrderModel])
