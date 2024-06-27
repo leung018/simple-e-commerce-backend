@@ -12,6 +12,7 @@ clean-db:
 test: # run-db first in local development. Don't add run-db directly here becasue no need for github action
 	${BIN_DIR}pytest
 run-server: run-db
+	export POSTGRES_DB=dev_db && \
 	${PATH_PREFIX}uvicorn app.main:app --reload
 format-check:
 	${BIN_DIR}black . --check
