@@ -40,7 +40,7 @@ make import-products
 make run-server
 ```
 
-Go to `http://localhost:8000/docs` to see the API swagger documentation and can try the API from there.
+Go to http://localhost:8000/docs to see the API swagger documentation and can try the API from there.
 
 See makefile for more commands and more details.
 
