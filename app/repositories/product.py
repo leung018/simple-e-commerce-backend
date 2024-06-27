@@ -79,4 +79,4 @@ class PostgresProductRepository(ProductRepository[Cursor]):
                     price=row[3],
                     quantity=row[4],
                 )
-            raise EntityNotFoundError("product_id: {} doesn't exist".format(product_id))
+            raise EntityNotFoundError.create("product_id", product_id)

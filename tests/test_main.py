@@ -7,6 +7,7 @@ from app.dependencies import (
 )
 from app.main import app
 from app.models.product import Product
+from app.repositories.err import EntityNotFoundError
 from app.repositories.order import order_repository_factory
 from app.repositories.product import product_repository_factory
 from app.repositories.base import RepositorySession
@@ -102,6 +103,9 @@ def test_should_response_400_if_my_value_error_throw_from_service_layer(
         access_token, [{"product_id": "unknown", "quantity": 1}]
     )
     assert response.status_code == 400
+    assert response.json() == {
+        "detail": str(EntityNotFoundError.create("product_id", "unknown"))
+    }
 
 
 def persist_product(product: Product, repository_session: RepositorySession):

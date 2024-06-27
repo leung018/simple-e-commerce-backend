@@ -64,4 +64,4 @@ class PostgresUserRepository(UserRepository[Cursor]):
                     id=row[0],
                     balance=row[1],
                 )
-            raise EntityNotFoundError("user_id: {} doesn't exist".format(user_id))
+            raise EntityNotFoundError.create("user_id", user_id)
