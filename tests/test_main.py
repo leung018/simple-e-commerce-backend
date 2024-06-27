@@ -11,6 +11,7 @@ from app.repositories.order import order_repository_factory
 from app.repositories.product import product_repository_factory
 from app.repositories.base import RepositorySession
 from app.services.auth import GetAccessTokenError, RegisterUserError
+from app.services.order import PlaceOrderError
 from tests.models.constructor import new_product
 
 client = TestClient(app)
@@ -78,6 +79,29 @@ def test_should_place_order_and_get_placed_order(repository_session: RepositoryS
         order_repo = order_repository_factory(repository_session.new_operator)
         order_in_repo = order_repo.get_by_user_id(user_id)[0]
         assert order_response["id"] == order_in_repo.id
+
+
+def test_should_response_400_if_my_value_error_throw_from_service_layer(
+    repository_session: RepositorySession,
+):
+    product = new_product(quantity=5, price=1)
+    persist_product(product, repository_session)
+
+    call_sign_up_api("myname", "mypassword")
+    access_token = call_login_api("myname", "mypassword").json()["access_token"]
+
+    # Place order with quantity more than available
+    response = call_place_order_api(
+        access_token, [{"product_id": product.id, "quantity": 10}]
+    )
+    assert response.status_code == 400
+    assert response.json() == {"detail": PlaceOrderError.QUANTITY_NOT_ENOUGH_ERROR}
+
+    # Place order with non existing product
+    response = call_place_order_api(
+        access_token, [{"product_id": "unknown", "quantity": 1}]
+    )
+    assert response.status_code == 400
 
 
 def persist_product(product: Product, repository_session: RepositorySession):
