@@ -98,7 +98,7 @@ def test_should_not_allow_register_user_with_existing_username(
     auth_service_fixture.sign_up(new_auth_input(username="uname"))
     with pytest.raises(RegisterUserError) as exc_info:
         auth_service_fixture.sign_up(new_auth_input(username="uname"))
-    assert RegisterUserError.format_username_exists_error("uname") == str(
+    assert RegisterUserError.format_username_exists_err_msg("uname") == str(
         exc_info.value
     )
 
@@ -115,13 +115,13 @@ def test_should_not_able_to_get_access_token_if_username_or_password_not_match(
         auth_service_fixture.get_access_token(
             new_auth_input(username="unaem", password="password")
         )
-    assert GetAccessTokenError.USERNAME_OR_PASSWORD_ERROR == str(exc_info.value)
+    assert GetAccessTokenError.USERNAME_OR_PASSWORD_ERR_MSG == str(exc_info.value)
 
     with pytest.raises(GetAccessTokenError) as exc_info:
         auth_service_fixture.get_access_token(
             new_auth_input(username="uname", password="passwodr")
         )
-    assert GetAccessTokenError.USERNAME_OR_PASSWORD_ERROR == str(exc_info.value)
+    assert GetAccessTokenError.USERNAME_OR_PASSWORD_ERR_MSG == str(exc_info.value)
 
 
 def test_should_able_to_decode_user_id(
