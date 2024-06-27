@@ -22,10 +22,13 @@ def test_should_raise_not_found_if_product_id_not_exist(
 ):
     product_repository = PostgresProductRepository(repository_session.new_operator)
     with repository_session:
-        with pytest.raises(EntityNotFoundError):
+        with pytest.raises(EntityNotFoundError) as exc_info:
             product_repository.get_by_id(
                 "unknown",
             )
+    assert str(exc_info.value) == EntityNotFoundError.format_err_msg(
+        "product_id", "unknown"
+    )
 
 
 def test_should_save_able_to_update_product(repository_session: PostgresSession):

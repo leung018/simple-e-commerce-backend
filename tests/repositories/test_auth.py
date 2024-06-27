@@ -26,7 +26,10 @@ def test_should_raise_entity_not_found_if_username_does_not_exists(
         repository_session.new_operator
     )
     with repository_session:
-        with pytest.raises(EntityNotFoundError):
+        with pytest.raises(EntityNotFoundError) as exc_info:
             auth_record_repository.get_by_username(
                 "unknown",
             )
+    assert str(exc_info.value) == EntityNotFoundError.format_err_msg(
+        "username", "unknown"
+    )

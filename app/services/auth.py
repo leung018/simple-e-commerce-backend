@@ -19,12 +19,20 @@ Operator = TypeVar("Operator")
 
 class RegisterUserError(MyValueError):
     @staticmethod
-    def format_username_exists_error(username: str):
+    def format_username_exists_err_msg(username: str):
         return f"username: {username} already exists"
+
+    @classmethod
+    def username_exists_error(cls, username: str):
+        return RegisterUserError(cls.format_username_exists_err_msg(username))
 
 
 class GetAccessTokenError(MyValueError):
-    USERNAME_OR_PASSWORD_ERROR = "username or password is not correct"
+    USERNAME_OR_PASSWORD_ERR_MSG = "username or password is not correct"
+
+    @classmethod
+    def username_or_password_error(cls):
+        return GetAccessTokenError(cls.USERNAME_OR_PASSWORD_ERR_MSG)
 
 
 class DecodeAccessTokenError(MyValueError):
@@ -69,9 +77,7 @@ class AuthService(Generic[Operator]):
     def sign_up(self, auth_input: AuthInput):
         with self._session:
             if self._get_auth_record(auth_input.username):
-                raise RegisterUserError(
-                    RegisterUserError.format_username_exists_error(auth_input.username)
-                )
+                raise RegisterUserError.username_exists_error(auth_input.username)
 
             user = self._new_user()
             self._user_repository.save(user)
@@ -102,9 +108,7 @@ class AuthService(Generic[Operator]):
             if not auth_record or not is_password_valid(
                 auth_input.password, auth_record.hashed_password
             ):
-                raise GetAccessTokenError(
-                    GetAccessTokenError.USERNAME_OR_PASSWORD_ERROR
-                )
+                raise GetAccessTokenError.username_or_password_error()
 
             user = self._user_repository.get_by_id(auth_record.user_id)
 

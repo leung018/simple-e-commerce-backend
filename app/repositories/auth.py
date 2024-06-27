@@ -61,7 +61,7 @@ class PostgresAuthRecordRepository(AuthRecordRepository[Cursor]):
             )
             result = cursor.fetchone()
             if result is None:
-                raise EntityNotFoundError(f"No record found for username: {username}")
+                raise EntityNotFoundError.create("username", username)
             return AuthRecord(
                 user_id=result[0], username=result[1], hashed_password=result[2]
             )

@@ -114,7 +114,7 @@ def test_should_raise_error_if_purchase_quantity_is_less_than_product_quantity(
     order_service_fixture.save_products([product])
 
     order_service_fixture.assert_place_order_error(
-        user.id, {product.id: 6}, PlaceOrderError.QUANTITY_NOT_ENOUGH_ERROR
+        user.id, {product.id: 6}, PlaceOrderError.QUANTITY_NOT_ENOUGH_ERR_MSG
     )
 
 
@@ -131,7 +131,7 @@ def test_should_raise_error_if_user_balance_is_not_enough_to_buy(
     order_service_fixture.save_products([product1, product2])
 
     order_service_fixture.assert_place_order_error(
-        user.id, {"p1": 2, "p2": 5}, PlaceOrderError.BALANCE_NOT_ENOUGH_ERROR
+        user.id, {"p1": 2, "p2": 5}, PlaceOrderError.BALANCE_NOT_ENOUGH_ERR_MSG
     )
 
 

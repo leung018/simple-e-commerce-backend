@@ -7,6 +7,7 @@ from app.dependencies import (
 )
 from app.main import app
 from app.models.product import Product
+from app.repositories.err import EntityNotFoundError
 from app.repositories.order import order_repository_factory
 from app.repositories.product import product_repository_factory
 from app.repositories.base import RepositorySession
@@ -41,14 +42,16 @@ def test_should_reject_sign_up_with_same_user():
     response = call_sign_up_api("user1", "mypassword2")
     assert response.status_code == 400
     assert response.json() == {
-        "detail": RegisterUserError.format_username_exists_error("user1")
+        "detail": RegisterUserError.format_username_exists_err_msg("user1")
     }
 
 
 def test_should_reject_login_with_wrong_password():
     call_sign_up_api("myname", "mypassword")
     response = call_login_api("myname", "wrongpassword")
-    assert response.json() == {"detail": GetAccessTokenError.USERNAME_OR_PASSWORD_ERROR}
+    assert response.json() == {
+        "detail": GetAccessTokenError.USERNAME_OR_PASSWORD_ERR_MSG
+    }
 
 
 def test_should_place_order_and_get_placed_order(repository_session: RepositorySession):
@@ -95,13 +98,16 @@ def test_should_response_400_if_my_value_error_throw_from_service_layer(
         access_token, [{"product_id": product.id, "quantity": 10}]
     )
     assert response.status_code == 400
-    assert response.json() == {"detail": PlaceOrderError.QUANTITY_NOT_ENOUGH_ERROR}
+    assert response.json() == {"detail": PlaceOrderError.QUANTITY_NOT_ENOUGH_ERR_MSG}
 
     # Place order with non existing product
     response = call_place_order_api(
         access_token, [{"product_id": "unknown", "quantity": 1}]
     )
     assert response.status_code == 400
+    assert response.json() == {
+        "detail": EntityNotFoundError.format_err_msg("product_id", "unknown")
+    }
 
 
 def persist_product(product: Product, repository_session: RepositorySession):

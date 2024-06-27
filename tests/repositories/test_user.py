@@ -21,8 +21,11 @@ def test_should_raise_not_found_if_user_id_not_exist(
     user_repository = PostgresUserRepository(repository_session.new_operator)
 
     with repository_session:
-        with pytest.raises(EntityNotFoundError):
+        with pytest.raises(EntityNotFoundError) as exc_info:
             user_repository.get_by_id("unknown")
+    assert str(exc_info.value) == EntityNotFoundError.format_err_msg(
+        "user_id", "unknown"
+    )
 
 
 def test_should_save_able_to_update_user(repository_session: PostgresSession):
