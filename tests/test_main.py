@@ -55,7 +55,7 @@ def test_should_reject_login_with_wrong_password():
 def test_should_place_order_and_get_placed_order(repository_session: RepositorySession):
     # Initialize product
     product = new_product(quantity=10, price=1)
-    create_product(product, repository_session)
+    persist_product(product, repository_session)
 
     # Initialize user
     call_sign_up_api("myname", "mypassword")
@@ -82,14 +82,14 @@ def test_should_place_order_and_get_placed_order(repository_session: RepositoryS
         assert order_response["id"] == order_in_repo.id
 
 
-def create_product(product: Product, repository_session: RepositorySession):
+def persist_product(product: Product, repository_session: RepositorySession):
     product_repository = product_repository_factory(repository_session.new_operator)
     with repository_session:
         product_repository.save(product)
         repository_session.commit()
 
 
-def create_user(user: User, repository_session: RepositorySession):
+def persist_user(user: User, repository_session: RepositorySession):
     user_repository = user_repository_factory(repository_session.new_operator)
     with repository_session:
         user_repository.save(user)
