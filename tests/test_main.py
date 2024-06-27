@@ -96,7 +96,7 @@ def test_should_response_400_if_my_value_error_throw_from_service_layer(
         access_token, [{"product_id": product.id, "quantity": 10}]
     )
     assert response.status_code == 400
-    assert response.json() == {"detail": PlaceOrderError.QUANTITY_NOT_ENOUGH_ERROR}
+    assert response.json() == {"detail": PlaceOrderError.QUANTITY_NOT_ENOUGH_ERROR_MSG}
 
     # Place order with non existing product
     response = call_place_order_api(
