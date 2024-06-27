@@ -6,7 +6,7 @@ from app.auth import get_current_user_id
 from app.dependencies import get_repository_session
 from app.err import MyValueError
 from app.models.order import Order, PurchaseInfo
-from app.repositories.order import OrderRepository, order_repository_factory
+from app.repositories.order import order_repository_factory
 from app.repositories.product import product_repository_factory
 from app.repositories.base import RepositorySession
 from app.repositories.user import user_repository_factory
