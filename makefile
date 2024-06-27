@@ -13,7 +13,7 @@ test:
 	${BIN_DIR}pytest
 run-server:
 	export POSTGRES_DB=dev_db && \
-	${PATH_PREFIX}uvicorn app.main:app --reload
+	${BIN_DIR}uvicorn app.main:app --reload
 import-products:
 	export POSTGRES_DB=dev_db && \
 	${BIN_DIR}python -m app.import_seed_data
