@@ -1,0 +1,11 @@
+id,name,price,quantity,category
+p1,Product 1,10.18,26,Gadgets
+p2,Product 2,17.21,21,Gadgets
+p3,Product 3,6.92,6,Home
+p4,Product 4,21.16,10,Clothing
+p5,Product 5,11.46,0,Clothing
+p6,Product 6,6.46,24,Gadgets
+p7,Product 7,31.56,18,Electronics
+p8,Product 8,9.68,5,Gadgets
+p9,Product 9,13.37,2,Clothing
+p10,Product 10,1.01,1,Electronics

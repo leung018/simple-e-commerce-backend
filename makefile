@@ -5,14 +5,18 @@ venv:
 	python3 -m venv venv && \
 	source venv/bin/activate && \
 	pip install -r requirements.txt -r requirements-dev.txt
-run-db:
+run-db: # Run it first before starting the server or running tests. However, you may need to wait a moment for the database to be ready. Therefore, it hasn't been added as a prerequisite for the run-server or test targets.
 	docker compose up -d
 clean-db:
 	docker compose down -v
-test: # run-db first in local development. Don't add run-db directly here becasue no need for github action
+test:
 	${BIN_DIR}pytest
-run-server: run-db
+run-server:
+	export POSTGRES_DB=dev_db && \
 	${PATH_PREFIX}uvicorn app.main:app --reload
+import-products:
+	export POSTGRES_DB=dev_db && \
+	${BIN_DIR}python -m app.import_seed_data
 format-check:
 	${BIN_DIR}black . --check
 format:
