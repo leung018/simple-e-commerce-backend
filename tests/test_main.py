@@ -26,6 +26,13 @@ def override_repository_session_dependency(repository_session):
     app.dependency_overrides[get_repository_session] = my_get_repository_session
 
 
+def test_should_login_respond_400_when_input_invalid():
+    response = call_login_api(
+        username="1", password="1234567"
+    )  # username length not allow to be too short according to AuthInput rule. Expect the ValidationError raised from AuthInput can be handled
+    assert response.status_code == 400
+
+
 def test_should_sign_up_and_login_respond_properly():
     response = call_sign_up_api("myname", "mypassword")
     assert response.status_code == 201
