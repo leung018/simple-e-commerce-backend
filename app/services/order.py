@@ -13,18 +13,16 @@ Operator = TypeVar("Operator")
 
 
 class PlaceOrderError(MyValueError):
-    QUANTITY_NOT_ENOUGH_ERROR_MSG = (
-        "quantity of product is not enough for your purchase"
-    )
-    BALANCE_NOT_ENOUGH_ERROR_MSG = "not enough balance"
+    QUANTITY_NOT_ENOUGH_ERR_MSG = "quantity of product is not enough for your purchase"
+    BALANCE_NOT_ENOUGH_ERR_MSG = "not enough balance"
 
     @classmethod
     def quantity_not_enough_error(cls):
-        return PlaceOrderError(cls.QUANTITY_NOT_ENOUGH_ERROR_MSG)
+        return PlaceOrderError(cls.QUANTITY_NOT_ENOUGH_ERR_MSG)
 
     @classmethod
     def balance_not_enough_error(cls):
-        return PlaceOrderError(cls.BALANCE_NOT_ENOUGH_ERROR_MSG)
+        return PlaceOrderError(cls.BALANCE_NOT_ENOUGH_ERR_MSG)
 
 
 class OrderService(Generic[Operator]):
