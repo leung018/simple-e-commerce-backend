@@ -103,7 +103,7 @@ def order_service_fixture(repository_session: RepositorySession):
     )
 
 
-def test_should_raise_error_if_purchase_quantity_is_less_than_product_quantity(
+def test_should_raise_error_if_purchase_quantity_is_larger_than_product_quantity(
     order_service_fixture: OrderServiceFixture,
 ):
 
@@ -135,7 +135,7 @@ def test_should_raise_error_if_user_balance_is_not_enough_to_buy(
     )
 
 
-def test_should_make_order_successfully_if_balance_is_enough_to_buy(
+def test_should_make_order_successfully_if_input_valid(
     order_service_fixture: OrderServiceFixture,
 ):
     product1 = new_product("p1", quantity=50, price=2)
