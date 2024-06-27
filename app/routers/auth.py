@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from app.auth import auth_service_factory
 from app.dependencies import get_repository_session
@@ -41,8 +41,8 @@ def login_for_access_token(
 ):
     try:
         auth_input = AuthInput(username=form_data.username, password=form_data.password)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=e.errors())
 
     auth_service = auth_service_factory(repository_session)
 
