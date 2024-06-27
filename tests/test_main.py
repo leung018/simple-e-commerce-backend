@@ -99,7 +99,7 @@ def test_should_response_400_if_my_value_error_throw_from_service_layer(
     call_sign_up_api("myname", "mypassword")
     access_token = call_login_api("myname", "mypassword").json()["access_token"]
 
-    # Both PlaceOrderError and EntityNotFoundError are MyValueError. Expecting a generic error handling when MyValueError is raised from service layer
+    # Both PlaceOrderError and EntityNotFoundError are subclass of MyValueError. Expecting a generic error handling when MyValueError is raised from service layer
 
     # Place order with quantity more than available
     response = call_place_order_api(
