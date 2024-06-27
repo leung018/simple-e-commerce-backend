@@ -30,4 +30,6 @@ def test_should_raise_entity_not_found_if_username_does_not_exists(
             auth_record_repository.get_by_username(
                 "unknown",
             )
-    assert str(exc_info.value) == str(EntityNotFoundError.create("username", "unknown"))
+    assert str(exc_info.value) == EntityNotFoundError.format_err_msg(
+        "username", "unknown"
+    )

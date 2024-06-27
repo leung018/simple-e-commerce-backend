@@ -104,7 +104,7 @@ def test_should_response_400_if_my_value_error_throw_from_service_layer(
     )
     assert response.status_code == 400
     assert response.json() == {
-        "detail": str(EntityNotFoundError.create("product_id", "unknown"))
+        "detail": EntityNotFoundError.format_err_msg("product_id", "unknown")
     }
 
 
