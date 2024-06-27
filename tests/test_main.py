@@ -7,11 +7,9 @@ from app.dependencies import (
 )
 from app.main import app
 from app.models.product import Product
-from app.models.user import User
 from app.repositories.order import order_repository_factory
 from app.repositories.product import product_repository_factory
 from app.repositories.base import RepositorySession
-from app.repositories.user import user_repository_factory
 from app.services.auth import GetAccessTokenError, RegisterUserError
 from tests.models.constructor import new_product
 
@@ -86,13 +84,6 @@ def persist_product(product: Product, repository_session: RepositorySession):
     product_repository = product_repository_factory(repository_session.new_operator)
     with repository_session:
         product_repository.save(product)
-        repository_session.commit()
-
-
-def persist_user(user: User, repository_session: RepositorySession):
-    user_repository = user_repository_factory(repository_session.new_operator)
-    with repository_session:
-        user_repository.save(user)
         repository_session.commit()
 
 
