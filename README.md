@@ -45,3 +45,11 @@ Go to `http://localhost:8000/docs` to see the API swagger documentation and can 
 See makefile for more commands and more details.
 
 ## Potential Improvements
+
+### Divide unit test and integration test
+
+In current project, all tests use the real implementation. If the size of the project grows, it is better to divide the tests into unit tests and integration tests.
+
+The tests in `test/repositories` can be considered as integration tests to interact with database directly while tests from other directories may use fake implementations of the repositories to test.
+
+Moreover, some function call related to bcrypt in library is quite slow. Can also consider to move the bcrypt related function to a separate module and test that module in integration test, while using fake implementation of that module in unit tests.
