@@ -88,17 +88,17 @@ class OrderServiceFixture(Generic[Operator]):
 
 @pytest.fixture
 def order_service_fixture(repository_session: RepositorySession):
-    user_repository = user_repository_factory(repository_session.new_operator)
-    product_repository = product_repository_factory(repository_session.new_operator)
-    order_repository = order_repository_factory(repository_session.new_operator)
     order_service = OrderService(
-        user_repository, product_repository, order_repository, repository_session
+        user_repository_factory,
+        product_repository_factory,
+        order_repository_factory,
+        repository_session,
     )
     return OrderServiceFixture(
         order_service,
-        user_repository,
-        product_repository,
-        order_repository,
+        user_repository_factory(repository_session.new_operator),
+        product_repository_factory(repository_session.new_operator),
+        order_repository_factory(repository_session.new_operator),
         repository_session,
     )
 

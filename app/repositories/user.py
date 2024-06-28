@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import TypeVar
+from typing import Callable, TypeAlias, TypeVar
 
 from psycopg import Cursor
 from app.models.user import User
@@ -22,6 +22,11 @@ class UserRepository(AbstractRepository[Operator]):
             EntityNotFoundError: If no user is found with the provided id.
         """
         pass
+
+
+UserRepositoryFactory: TypeAlias = Callable[
+    [Callable[[], Operator]], UserRepository[Operator]
+]
 
 
 def user_repository_factory(new_operator):

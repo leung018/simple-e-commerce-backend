@@ -4,10 +4,10 @@ from app.err import MyValueError
 from app.models.order import Order, PurchaseInfo
 from app.models.product import Product
 from app.models.user import User
-from app.repositories.order import OrderRepository
-from app.repositories.product import ProductRepository
+from app.repositories.order import OrderRepository, OrderRepositoryFactory
+from app.repositories.product import ProductRepository, ProductRepositoryFactory
 from app.repositories.base import RepositorySession
-from app.repositories.user import UserRepository
+from app.repositories.user import UserRepository, UserRepositoryFactory
 
 Operator = TypeVar("Operator")
 
@@ -28,14 +28,20 @@ class PlaceOrderError(MyValueError):
 class OrderService(Generic[Operator]):
     def __init__(
         self,
-        user_repository: UserRepository[Operator],
-        product_repository: ProductRepository[Operator],
-        order_repository: OrderRepository[Operator],
+        user_repository_factory: UserRepositoryFactory[Operator],
+        product_repository_factory: ProductRepositoryFactory[Operator],
+        order_repository_factory: OrderRepositoryFactory[Operator],
         repository_session: RepositorySession[Operator],
     ):
-        self._user_repository = user_repository
-        self._product_repository = product_repository
-        self._order_repository = order_repository
+        self._user_repository: UserRepository[Operator] = user_repository_factory(
+            repository_session.new_operator
+        )
+        self._product_repository: ProductRepository[Operator] = (
+            product_repository_factory(repository_session.new_operator)
+        )
+        self._order_repository: OrderRepository[Operator] = order_repository_factory(
+            repository_session.new_operator
+        )
         self._session = repository_session
 
     def place_order(self, user_id: str, purchase_info: PurchaseInfo):

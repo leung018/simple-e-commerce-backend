@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import TypeVar
+from typing import Callable, TypeAlias, TypeVar
 
 from psycopg import Cursor
 
@@ -23,6 +23,11 @@ class OrderRepository(AbstractRepository[Operator]):
         but for the current project scope, the existing arrangement is sufficient.
         """
         pass
+
+
+OrderRepositoryFactory: TypeAlias = Callable[
+    [Callable[[], Operator]], OrderRepository[Operator]
+]
 
 
 def order_repository_factory(new_operator):

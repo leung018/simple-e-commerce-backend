@@ -15,14 +15,10 @@ oauth2_scheme = OAuth2PasswordBearer(
 
 
 def auth_service_factory(repository_session: RepositorySession) -> AuthService:
-    user_repository = user_repository_factory(repository_session.new_operator)
-    auth_record_repository = auth_record_repository_factory(
-        repository_session.new_operator
-    )
     return AuthService(
         AuthServiceConfig.from_env(),
-        user_repository,
-        auth_record_repository,
+        user_repository_factory,
+        auth_record_repository_factory,
         repository_session,
     )
 

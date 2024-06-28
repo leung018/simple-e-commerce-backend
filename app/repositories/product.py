@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import TypeVar
+from typing import Callable, TypeAlias, TypeVar
 
 from psycopg import Cursor
 
@@ -22,6 +22,11 @@ class ProductRepository(AbstractRepository[Operator]):
             EntityNotFoundError: If no product is found with the provided id.
         """
         pass
+
+
+ProductRepositoryFactory: TypeAlias = Callable[
+    [Callable[[], Operator]], ProductRepository[Operator]
+]
 
 
 def product_repository_factory(new_operator):

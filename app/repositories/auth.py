@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import TypeVar
+from typing import Callable, TypeAlias, TypeVar
 
 from psycopg import Cursor
 
@@ -23,6 +23,11 @@ class AuthRecordRepository(AbstractRepository[Operator]):
             EntityNotFoundError: If no record is found with the provided username
         """
         pass
+
+
+AuthRecordRepositoryFactory: TypeAlias = Callable[
+    [Callable[[], Operator]], AuthRecordRepository[Operator]
+]
 
 
 def auth_record_repository_factory(new_operator):
