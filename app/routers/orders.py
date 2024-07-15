@@ -42,12 +42,11 @@ def place_order(
     current_user_id: Annotated[str, Depends(get_current_user_id)],
     repository_session: Annotated[RepositorySession, Depends(get_repository_session)],
 ):
-    user_repository = user_repository_factory(repository_session.new_operator)
-    product_repository = product_repository_factory(repository_session.new_operator)
-    order_repository = order_repository_factory(repository_session.new_operator)
-
     order_service = OrderService(
-        user_repository, product_repository, order_repository, repository_session
+        user_repository_factory,
+        product_repository_factory,
+        order_repository_factory,
+        repository_session,
     )
 
     try:

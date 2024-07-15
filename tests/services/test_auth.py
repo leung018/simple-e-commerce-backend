@@ -57,10 +57,6 @@ class AuthServiceFixture(Generic[Operator]):
 
 @pytest.fixture
 def auth_service_fixture(repository_session: RepositorySession):
-    user_repository = user_repository_factory(repository_session.new_operator)
-    auth_record_repository = auth_record_repository_factory(
-        repository_session.new_operator
-    )
     auth_service_config = AuthServiceConfig.from_env()
 
     def auth_service_factory(
@@ -68,10 +64,15 @@ def auth_service_fixture(repository_session: RepositorySession):
     ):
         return AuthService(
             auth_service_config=auth_service_config,
-            user_repository=user_repository,
-            auth_repository=auth_record_repository,
+            user_repository_factory=user_repository_factory,
+            auth_repository_factory=auth_record_repository_factory,
             repository_session=repository_session,
         )
+
+    user_repository = user_repository_factory(repository_session.new_operator)
+    auth_record_repository = auth_record_repository_factory(
+        repository_session.new_operator
+    )
 
     return AuthServiceFixture(
         user_repository,

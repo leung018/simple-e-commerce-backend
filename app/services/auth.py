@@ -9,10 +9,10 @@ from passlib.context import CryptContext
 from app.err import MyValueError
 from app.models.auth import AuthInput, AuthRecord
 from app.models.user import USER_INITIAL_BALANCE, User
-from app.repositories.auth import AuthRecordRepository
+from app.repositories.auth import AuthRecordRepository, AuthRecordRepositoryFactory
 from app.repositories.err import EntityNotFoundError
 from app.repositories.base import RepositorySession
-from app.repositories.user import UserRepository
+from app.repositories.user import UserRepository, UserRepositoryFactory
 
 Operator = TypeVar("Operator")
 
@@ -65,13 +65,17 @@ class AuthService(Generic[Operator]):
     def __init__(
         self,
         auth_service_config: AuthServiceConfig,
-        user_repository: UserRepository[Operator],
-        auth_repository: AuthRecordRepository[Operator],
+        user_repository_factory: UserRepositoryFactory[Operator],
+        auth_repository_factory: AuthRecordRepositoryFactory[Operator],
         repository_session: RepositorySession[Operator],
     ):
         self._auth_service_config = auth_service_config
-        self._user_repository = user_repository
-        self._auth_repository = auth_repository
+        self._user_repository: UserRepository[Operator] = user_repository_factory(
+            repository_session.new_operator
+        )
+        self._auth_repository: AuthRecordRepository[Operator] = auth_repository_factory(
+            repository_session.new_operator
+        )
         self._session = repository_session
 
     def sign_up(self, auth_input: AuthInput):
