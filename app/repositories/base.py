@@ -25,8 +25,6 @@ class RepositorySession(ABC, Generic[Operator]):
     regardless of whether an exception is raised.
 
     Note: The isolation level is expected to be serializable for maximum data integrity and program simplicity.
-    If performance issues arise due to this high isolation level in future use cases,
-    consider exposing a setting in this class to allow adjustment of the isolation level.
     """
 
     def __enter__(self):
