@@ -47,11 +47,11 @@ class OrderService(Generic[Operator]):
     def place_order(self, user_id: str, purchase_info: PurchaseInfo):
         with self._session:
             user = self._user_repository.get_by_id(user_id, exclusive_lock=True)
-            product_map = self._fetch_products_with_exclusive_lock(
+            products_by_id = self._fetch_products_with_exclusive_lock(
                 [item.product_id for item in purchase_info.order_items]
             )
 
-            total_price = self._process_products(purchase_info, product_map)
+            total_price = self._process_products(purchase_info, products_by_id)
             self._make_payment(user, total_price)
             self._record_order(user.id, purchase_info)
 
@@ -64,16 +64,16 @@ class OrderService(Generic[Operator]):
             product_ids
         )  # Consistent order of locking to avoid deadlocks
 
-        product_map: dict[str, Product] = {}
+        products_by_id: dict[str, Product] = {}
         for product_id in product_ids:
             product = self._product_repository.get_by_id(
                 product_id, exclusive_lock=True
             )
-            product_map[product.id] = product
-        return product_map
+            products_by_id[product.id] = product
+        return products_by_id
 
     def _process_products(
-        self, purchase_info: PurchaseInfo, product_map: dict[str, Product]
+        self, purchase_info: PurchaseInfo, products_by_id: dict[str, Product]
     ) -> float:
         """
         Return total price of this order
@@ -81,7 +81,7 @@ class OrderService(Generic[Operator]):
 
         total_price: float = 0
         for order_item in purchase_info.order_items:
-            product = product_map[order_item.product_id]
+            product = products_by_id[order_item.product_id]
             self._update_product_inventory(product, order_item.quantity)
             total_price += order_item.quantity * product.price
         return total_price
