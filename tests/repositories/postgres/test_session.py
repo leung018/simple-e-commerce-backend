@@ -1,5 +1,5 @@
 import pytest
-from app.repositories.postgres import PostgresSession
+from app.repositories.postgres.session import PostgresSession
 from app.repositories.order import PostgresOrderRepository
 from tests.models.constructor import new_order
 

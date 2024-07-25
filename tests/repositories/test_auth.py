@@ -1,7 +1,7 @@
 import pytest
 from app.repositories.auth import PostgresAuthRecordRepository
 from app.repositories.err import EntityNotFoundError
-from app.repositories.postgres import PostgresSession
+from app.repositories.postgres.session import PostgresSession
 from tests.models.constructor import new_auth_record
 
 

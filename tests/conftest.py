@@ -3,7 +3,7 @@ import pytest
 
 from app.dependencies import get_repository_session
 from app.repositories.migration import migrate_down, migrate_up
-from app.repositories.postgres import PostgresSession
+from app.repositories.postgres.session import PostgresSession
 
 
 @pytest.fixture

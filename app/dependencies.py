@@ -1,7 +1,5 @@
-from app.repositories.postgres import (
-    PostgresConfig,
-    PostgresSession,
-)
+from app.repositories.postgres.session import PostgresSession
+from app.repositories.postgres.config import PostgresConfig
 
 
 def get_repository_session():

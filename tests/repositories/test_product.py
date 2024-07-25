@@ -1,6 +1,6 @@
 import pytest
 from app.repositories.err import EntityNotFoundError
-from app.repositories.postgres import PostgresSession
+from app.repositories.postgres.session import PostgresSession
 from app.repositories.product import (
     PostgresProductRepository,
 )
