@@ -20,7 +20,7 @@ class UserRepository(AbstractRepository[Operator]):
     def get_by_id(
         self,
         user_id: str,
-        explicit_lock: bool = False,
+        exclusive_lock: bool = False,
     ) -> User:
         """
         Raises:
@@ -62,10 +62,10 @@ class PostgresUserRepository(UserRepository[Cursor]):
                 (user.id, user.balance),
             )
 
-    def get_by_id(self, user_id: str, explicit_lock: bool = False) -> User:
+    def get_by_id(self, user_id: str, exclusive_lock: bool = False) -> User:
         with self.new_operator() as cur:
             query = select_query_helper(
-                "SELECT id, balance FROM users WHERE id = %s", for_share=explicit_lock
+                "SELECT id, balance FROM users WHERE id = %s", for_share=exclusive_lock
             )
             cur.execute(
                 query,

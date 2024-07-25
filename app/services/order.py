@@ -46,8 +46,8 @@ class OrderService(Generic[Operator]):
 
     def place_order(self, user_id: str, purchase_info: PurchaseInfo):
         with self._session:
-            user = self._user_repository.get_by_id(user_id, explicit_lock=True)
-            product_map = self._fetch_products_with_explicit_lock(
+            user = self._user_repository.get_by_id(user_id, exclusive_lock=True)
+            product_map = self._fetch_products_with_exclusive_lock(
                 [item.product_id for item in purchase_info.order_items]
             )
 
@@ -57,7 +57,7 @@ class OrderService(Generic[Operator]):
 
             self._session.commit()
 
-    def _fetch_products_with_explicit_lock(
+    def _fetch_products_with_exclusive_lock(
         self, product_ids: list[str]
     ) -> dict[str, Product]:
         product_ids = sorted(
@@ -66,7 +66,9 @@ class OrderService(Generic[Operator]):
 
         product_map: dict[str, Product] = {}
         for product_id in product_ids:
-            product = self._product_repository.get_by_id(product_id, explicit_lock=True)
+            product = self._product_repository.get_by_id(
+                product_id, exclusive_lock=True
+            )
             product_map[product.id] = product
         return product_map
 
