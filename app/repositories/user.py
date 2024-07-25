@@ -16,7 +16,11 @@ class UserRepository(AbstractRepository[Operator]):
         pass
 
     @abstractmethod
-    def get_by_id(self, user_id: str) -> User:
+    def get_by_id(
+        self,
+        user_id: str,
+        explicit_lock: bool = False,
+    ) -> User:
         """
         Raises:
             EntityNotFoundError: If no user is found with the provided id.
@@ -57,10 +61,14 @@ class PostgresUserRepository(UserRepository[Cursor]):
                 (user.id, user.balance),
             )
 
-    def get_by_id(self, user_id: str) -> User:
+    def get_by_id(self, user_id: str, explicit_lock: bool = False) -> User:
         with self.new_operator() as cur:
+            query = "SELECT id, balance FROM users WHERE id = %s"
+            if explicit_lock:
+                query += " FOR UPDATE"
+            query += ";"
             cur.execute(
-                "SELECT id, balance FROM users WHERE id = %s;",
+                query,
                 (user_id,),
             )
             row = cur.fetchone()
