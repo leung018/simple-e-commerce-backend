@@ -1,6 +1,6 @@
 from app.repositories.auth import PostgresAuthRecordRepository
 from app.repositories.order import PostgresOrderRepository
-from app.repositories.postgres import PostgresSession
+from app.repositories.postgres.session import PostgresSession
 from app.repositories.product import PostgresProductRepository
 from app.repositories.user import PostgresUserRepository
 

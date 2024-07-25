@@ -5,6 +5,7 @@ from psycopg import Cursor
 from app.models.user import User
 from app.repositories.err import EntityNotFoundError
 from app.repositories.base import AbstractRepository
+from app.repositories.postgres.helper import select_query_helper
 
 
 Operator = TypeVar("Operator")
@@ -16,7 +17,11 @@ class UserRepository(AbstractRepository[Operator]):
         pass
 
     @abstractmethod
-    def get_by_id(self, user_id: str) -> User:
+    def get_by_id(
+        self,
+        user_id: str,
+        explicit_lock: bool = False,
+    ) -> User:
         """
         Raises:
             EntityNotFoundError: If no user is found with the provided id.
@@ -57,10 +62,13 @@ class PostgresUserRepository(UserRepository[Cursor]):
                 (user.id, user.balance),
             )
 
-    def get_by_id(self, user_id: str) -> User:
+    def get_by_id(self, user_id: str, explicit_lock: bool = False) -> User:
         with self.new_operator() as cur:
+            query = select_query_helper(
+                "SELECT id, balance FROM users WHERE id = %s", for_share=explicit_lock
+            )
             cur.execute(
-                "SELECT id, balance FROM users WHERE id = %s;",
+                query,
                 (user_id,),
             )
             row = cur.fetchone()

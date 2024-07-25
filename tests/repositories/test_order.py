@@ -1,5 +1,5 @@
 from app.repositories.order import PostgresOrderRepository
-from app.repositories.postgres import PostgresSession
+from app.repositories.postgres.session import PostgresSession
 from tests.models.constructor import new_order
 
 
