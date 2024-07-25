@@ -9,9 +9,6 @@ class PostgresSession(RepositorySession):
 
     def __enter__(self):
         self._conn = self._new_postgres_conn()
-        self._conn.isolation_level = (
-            psycopg.IsolationLevel.SERIALIZABLE
-        )  # TODO: Remove it and use the default isolation level. Use locking mechanism to solve the concurrency issue.
         return super().__enter__()
 
     def __exit__(self, *args):
