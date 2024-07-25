@@ -13,15 +13,6 @@ def test_should_save_and_get_user(repository_session: PostgresSession):
     with repository_session:
         user_repository.save(user)
         assert user == user_repository.get_by_id(user.id)
-
-
-def test_should_save_and_get_user_even_explicit_lock(
-    repository_session: PostgresSession,
-):
-    user = new_user()
-    user_repository = PostgresUserRepository(repository_session.new_operator)
-    with repository_session:
-        user_repository.save(user)
         assert user == user_repository.get_by_id(user.id, explicit_lock=True)
 
 
