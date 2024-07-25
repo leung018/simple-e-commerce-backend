@@ -2,9 +2,10 @@ from abc import abstractmethod
 from typing import Callable, TypeAlias, TypeVar
 
 from psycopg import Cursor
+import psycopg
 
 from app.models.auth import AuthRecord
-from app.repositories.err import EntityNotFoundError
+from app.repositories.err import EntityAlreadyExistsError, EntityNotFoundError
 from app.repositories.base import AbstractRepository
 
 
@@ -14,6 +15,10 @@ Operator = TypeVar("Operator")
 class AuthRecordRepository(AbstractRepository[Operator]):
     @abstractmethod
     def add(self, auth_record: AuthRecord):
+        """
+        Raises:
+            EntityAlreadyExistsError: If a record with the provided username already exists
+        """
         pass
 
     @abstractmethod
@@ -49,14 +54,17 @@ class PostgresAuthRecordRepository(AuthRecordRepository[Cursor]):
 
     def add(self, auth_record: AuthRecord):
         with self.new_operator() as cursor:
-            cursor.execute(
-                "INSERT INTO auth_records (user_id, username, hashed_password) VALUES (%s, %s, %s);",
-                (
-                    auth_record.user_id,
-                    auth_record.username,
-                    auth_record.hashed_password,
-                ),
-            )
+            try:
+                cursor.execute(
+                    "INSERT INTO auth_records (user_id, username, hashed_password) VALUES (%s, %s, %s);",
+                    (
+                        auth_record.user_id,
+                        auth_record.username,
+                        auth_record.hashed_password,
+                    ),
+                )
+            except psycopg.errors.UniqueViolation:
+                raise EntityAlreadyExistsError.create("username", auth_record.username)
 
     def get_by_username(self, username: str) -> AuthRecord:
         with self.new_operator() as cursor:
