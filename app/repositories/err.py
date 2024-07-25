@@ -9,3 +9,13 @@ class EntityNotFoundError(MyValueError):
     @classmethod
     def create(cls, field_name: str, field_value: str):
         return EntityNotFoundError(cls.format_err_msg(field_name, field_value))
+
+
+class EntityAlreadyExistsError(MyValueError):
+    @staticmethod
+    def format_err_msg(field_name: str, field_value: str):
+        return f"{field_name}: {field_value} already exists"
+
+    @classmethod
+    def create(cls, field_name: str, field_value: str):
+        return EntityAlreadyExistsError(cls.format_err_msg(field_name, field_value))

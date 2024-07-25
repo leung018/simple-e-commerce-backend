@@ -10,7 +10,7 @@ from app.err import MyValueError
 from app.models.auth import AuthInput, AuthRecord
 from app.models.user import USER_INITIAL_BALANCE, User
 from app.repositories.auth import AuthRecordRepository, AuthRecordRepositoryFactory
-from app.repositories.err import EntityNotFoundError
+from app.repositories.err import EntityAlreadyExistsError, EntityNotFoundError
 from app.repositories.base import RepositorySession
 from app.repositories.user import UserRepository, UserRepositoryFactory
 
@@ -79,14 +79,18 @@ class AuthService(Generic[Operator]):
         self._session = repository_session
 
     def sign_up(self, auth_input: AuthInput):
-        with self._session:
-            if self._get_auth_record(auth_input.username):
-                raise RegisterUserError.username_exists_error(auth_input.username)
+        try:
+            with self._session:
+                user = self._new_user()
+                self._user_repository.save(user)
 
-            user = self._new_user()
-            self._user_repository.save(user)
-            self._auth_repository.add(self._new_auth_record(user.id, auth_input))
-            self._session.commit()
+                # In the postgres implementation of repository, if other concurrent transaction inserted the same username first without committing, this will wait until the other transaction is committed or rolled back.
+                # If the other transaction is rolled back, this will insert the record. Otherwise, it will raise EntityAlreadyExistsError.
+                self._auth_repository.add(self._new_auth_record(user.id, auth_input))
+
+                self._session.commit()
+        except EntityAlreadyExistsError:
+            raise RegisterUserError.username_exists_error(auth_input.username)
 
     def _new_user(self):
         user = User(id=str(uuid4()), balance=USER_INITIAL_BALANCE)

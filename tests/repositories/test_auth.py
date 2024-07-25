@@ -1,6 +1,6 @@
 import pytest
 from app.repositories.auth import PostgresAuthRecordRepository
-from app.repositories.err import EntityNotFoundError
+from app.repositories.err import EntityAlreadyExistsError, EntityNotFoundError
 from app.repositories.postgres.session import PostgresSession
 from tests.models.constructor import new_auth_record
 
@@ -32,4 +32,21 @@ def test_should_raise_entity_not_found_if_username_does_not_exists(
             )
     assert str(exc_info.value) == EntityNotFoundError.format_err_msg(
         "username", "unknown"
+    )
+
+
+def test_should_raise_entity_already_exists_if_username_already_exists(
+    repository_session: PostgresSession,
+):
+    auth_record_repository = PostgresAuthRecordRepository(
+        repository_session.new_operator
+    )
+
+    auth_record = new_auth_record()
+    with repository_session:
+        auth_record_repository.add(auth_record)
+        with pytest.raises(EntityAlreadyExistsError) as exc_info:
+            auth_record_repository.add(auth_record)
+    assert str(exc_info.value) == EntityAlreadyExistsError.format_err_msg(
+        "username", auth_record.username
     )

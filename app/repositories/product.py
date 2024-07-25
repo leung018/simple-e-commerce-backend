@@ -17,7 +17,7 @@ class ProductRepository(AbstractRepository[Operator]):
         pass
 
     @abstractmethod
-    def get_by_id(self, product_id: str, explicit_lock: bool = False) -> Product:
+    def get_by_id(self, product_id: str, exclusive_lock: bool = False) -> Product:
         """
         Raises:
             EntityNotFoundError: If no product is found with the provided id.
@@ -70,11 +70,11 @@ class PostgresProductRepository(ProductRepository[Cursor]):
                 ),
             )
 
-    def get_by_id(self, product_id: str, explicit_lock: bool = False) -> Product:
+    def get_by_id(self, product_id: str, exclusive_lock: bool = False) -> Product:
         with self.new_operator() as cur:
             query = select_query_helper(
                 "SELECT id, name, category, price, quantity FROM products WHERE id = %s;",
-                for_share=explicit_lock,
+                for_share=exclusive_lock,
             )
             cur.execute(
                 query,
