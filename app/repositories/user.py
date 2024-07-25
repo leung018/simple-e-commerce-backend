@@ -5,6 +5,7 @@ from psycopg import Cursor
 from app.models.user import User
 from app.repositories.err import EntityNotFoundError
 from app.repositories.base import AbstractRepository
+from app.repositories.postgres.helper import select_query_helper
 
 
 Operator = TypeVar("Operator")
@@ -63,10 +64,9 @@ class PostgresUserRepository(UserRepository[Cursor]):
 
     def get_by_id(self, user_id: str, explicit_lock: bool = False) -> User:
         with self.new_operator() as cur:
-            query = "SELECT id, balance FROM users WHERE id = %s"
-            if explicit_lock:
-                query += " FOR UPDATE"
-            query += ";"
+            query = select_query_helper(
+                "SELECT id, balance FROM users WHERE id = %s", for_share=explicit_lock
+            )
             cur.execute(
                 query,
                 (user_id,),
