@@ -83,7 +83,11 @@ class AuthService(Generic[Operator]):
             with self._session:
                 user = self._new_user()
                 self._user_repository.save(user)
+
+                # In the postgres implementation of repository, if other concurrent transaction inserted the same username first without committing, this will wait until the other transaction is committed or rolled back.
+                # If the other transaction is rolled back, this will insert the record. Otherwise, it will raise EntityAlreadyExistsError.
                 self._auth_repository.add(self._new_auth_record(user.id, auth_input))
+
                 self._session.commit()
         except EntityAlreadyExistsError:
             raise RegisterUserError.username_exists_error(auth_input.username)
