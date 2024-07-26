@@ -38,7 +38,7 @@ class OrderModel(BaseModel):
 
 @router.post("/", status_code=201)
 def place_order(
-    purchase_info: PurchaseInfo,
+    purchase_info: PurchaseInfo,  # For the notes of reusing domain model in the API layer, see the comment of sign_up function in app/routers/auth.py.
     current_user_id: Annotated[str, Depends(get_current_user_id)],
     repository_session: Annotated[RepositorySession, Depends(get_repository_session)],
 ):

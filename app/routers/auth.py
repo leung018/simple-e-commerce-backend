@@ -23,7 +23,8 @@ class Token(BaseModel):
 
 @router.post("/signup", status_code=201)
 def sign_up(
-    auth_input: AuthInput,
+    auth_input: AuthInput,  # Reuse domain model in the API layer because it can has the validation logic of the domain model and response bad request if the input is invalid.
+    # If future wanna refactor the domain model without affecting the API layer, consider using a separate model for the API layer.
     repository_session: Annotated[RepositorySession, Depends(get_repository_session)],
 ):
     auth_service = auth_service_factory(repository_session)
