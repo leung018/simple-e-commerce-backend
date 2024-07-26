@@ -50,6 +50,6 @@ See makefile for more commands and more details.
 
 In current project, all tests use the real implementation. If the size of the project grows, it is better to divide the tests into unit tests and integration tests.
 
-The tests in `test/repositories` can be considered as integration tests to interact with database directly while tests from other directories may use fake implementations of the repositories to test.
+The tests in `test/repositories` can be considered as integration tests to interact with database directly while tests from other directories may use fake implementations of the repositories to test. One test of OrderService is also targeting the handling of race condition and prefer using real implementation of the repository and this test can be considered as integration test too.
 
 Moreover, some function call related to bcrypt in library is quite slow. Can also consider to move the bcrypt related function to a separate module and test that module in integration test, while using fake implementation of that module in unit tests.
