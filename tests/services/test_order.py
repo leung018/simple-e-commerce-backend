@@ -1,7 +1,9 @@
 from dataclasses import dataclass
+from threading import Thread
 from typing import Generic, Optional, TypeVar
 import pytest
 
+from app.dependencies import get_repository_session
 from app.models.order import Order, OrderItem, PurchaseInfo
 from app.models.product import Product
 from app.models.user import User
@@ -183,3 +185,100 @@ def test_should_order_id_generated_are_different_each_time(
 
     assert order1 is not None and order2 is not None
     assert order1.id != order2.id
+
+
+def test_should_prevent_race_condition_when_placing_orders(
+    repository_session: RepositorySession,
+):
+    user_repository = user_repository_factory(repository_session.new_operator)
+    product_repository = product_repository_factory(repository_session.new_operator)
+
+    user1 = new_user(id="u1", balance=100)
+    user2 = new_user(id="u2", balance=120)
+    product1 = new_product(id="p1", quantity=12, price=5)
+    product2 = new_product(id="p2", quantity=12, price=4)
+
+    with repository_session:
+        user_repository.save(user1)
+        user_repository.save(user2)
+        product_repository.save(product1)
+        product_repository.save(product2)
+        repository_session.commit()
+
+    def place_order(user_id: str, order_items: tuple[OrderItem, ...]):
+        order_service = OrderService(
+            user_repository_factory,
+            product_repository_factory,
+            order_repository_factory,
+            get_repository_session(),  # Same session cannot be shared between threads
+        )
+        purchase_info = PurchaseInfo(
+            order_items,
+        )
+        order_service.place_order(user_id, purchase_info)
+
+    # They are the same but in different order. Make sure won't cause deadlock even in this case
+    user1_order_items = (OrderItem("p1", 2), OrderItem("p2", 2))
+    user2_order_items = (OrderItem("p2", 2), OrderItem("p1", 2))
+
+    threads: list[Thread] = [
+        Thread(
+            target=place_order,
+            args=(
+                "u1",
+                user1_order_items,
+            ),
+        ),
+        Thread(
+            target=place_order,
+            args=(
+                "u1",
+                user1_order_items,
+            ),
+        ),
+        Thread(
+            target=place_order,
+            args=(
+                "u1",
+                user1_order_items,
+            ),
+        ),
+        Thread(
+            target=place_order,
+            args=(
+                "u2",
+                user2_order_items,
+            ),
+        ),
+        Thread(
+            target=place_order,
+            args=(
+                "u2",
+                user2_order_items,
+            ),
+        ),
+        Thread(
+            target=place_order,
+            args=(
+                "u2",
+                user2_order_items,
+            ),
+        ),
+    ]
+
+    for thread in threads:
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    with repository_session:
+        user1 = user_repository.get_by_id("u1")
+        user2 = user_repository.get_by_id("u2")
+        product1 = product_repository.get_by_id("p1")
+        product2 = product_repository.get_by_id("p2")
+
+        assert user1.balance == 46  # 100 - (2*5 + 2*4)*3
+        assert user2.balance == 66  # 120 - (2*4 + 2*5)*3
+        assert product1.quantity == 0
+        assert product2.quantity == 0
