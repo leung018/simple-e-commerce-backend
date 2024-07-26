@@ -74,7 +74,7 @@ class PostgresProductRepository(ProductRepository[Cursor]):
         with self.new_operator() as cur:
             query = select_query_helper(
                 "SELECT id, name, category, price, quantity FROM products WHERE id = %s;",
-                for_share=exclusive_lock,
+                for_update=exclusive_lock,
             )
             cur.execute(
                 query,

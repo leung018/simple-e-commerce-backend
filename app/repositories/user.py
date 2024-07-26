@@ -65,7 +65,7 @@ class PostgresUserRepository(UserRepository[Cursor]):
     def get_by_id(self, user_id: str, exclusive_lock: bool = False) -> User:
         with self.new_operator() as cur:
             query = select_query_helper(
-                "SELECT id, balance FROM users WHERE id = %s", for_share=exclusive_lock
+                "SELECT id, balance FROM users WHERE id = %s", for_update=exclusive_lock
             )
             cur.execute(
                 query,
