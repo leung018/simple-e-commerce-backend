@@ -1,7 +1,9 @@
 from dataclasses import dataclass
+from threading import Thread
 from typing import Generic, Optional, TypeVar
 import pytest
 
+from app.dependencies import get_repository_session
 from app.models.order import Order, OrderItem, PurchaseInfo
 from app.models.product import Product
 from app.models.user import User
@@ -183,3 +185,44 @@ def test_should_order_id_generated_are_different_each_time(
 
     assert order1 is not None and order2 is not None
     assert order1.id != order2.id
+
+
+def test_should_prevent_race_condition_when_placing_orders(repository_session: RepositorySession):
+    user_repository = user_repository_factory(repository_session.new_operator)
+    product_repository = product_repository_factory(repository_session.new_operator)
+
+    user = new_user(id="u1", balance=100)
+    product = new_product(id="p1", quantity=10, price=5)
+
+    with repository_session:
+        user_repository.save(user)
+        product_repository.save(product)
+        repository_session.commit()
+
+    def place_order(quantity):
+        order_service = OrderService(
+            user_repository_factory,
+            product_repository_factory,
+            order_repository_factory,
+            get_repository_session(),  # Same session cannot be shared between threads
+        )
+        order_service.place_order("u1", PurchaseInfo((OrderItem("p1", quantity),)))
+
+    threads: list[Thread] = []
+
+    for _ in range(5):
+        thread = Thread(target=place_order, args=(2,))
+        threads.append(thread)
+
+    for thread in threads:
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    with repository_session:
+        user = user_repository.get_by_id("u1")
+        product = product_repository.get_by_id("p1")
+
+        assert user.balance == 50  # 100 - 5*2*5
+        assert product.quantity == 0  # 10 - 2*5
