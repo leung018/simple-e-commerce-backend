@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from enum import Enum, auto
 from typing import Callable, Generic, TypeVar
 
 
@@ -64,3 +65,10 @@ class AbstractRepository(ABC, Generic[Operator]):
                 Also see the comment of new_operator in the RepositorySession class.
         """
         self.new_operator = new_operator
+
+
+class LockLevel(Enum):
+    NONE = auto()
+    EXCLUSIVE = (
+        auto()
+    )  # It means that the lock is exclusive, and no other transaction can access the locked data concurrently.

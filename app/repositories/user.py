@@ -4,7 +4,7 @@ from typing import Callable, TypeAlias, TypeVar
 from psycopg import Cursor
 from app.models.user import User
 from app.repositories.err import EntityNotFoundError
-from app.repositories.base import AbstractRepository
+from app.repositories.base import AbstractRepository, LockLevel
 from app.repositories.postgres.helper import select_query_helper
 
 
@@ -20,7 +20,7 @@ class UserRepository(AbstractRepository[Operator]):
     def get_by_id(
         self,
         user_id: str,
-        exclusive_lock: bool = False,
+        lock_level: LockLevel = LockLevel.NONE,
     ) -> User:
         """
         Raises:
@@ -62,10 +62,10 @@ class PostgresUserRepository(UserRepository[Cursor]):
                 (user.id, user.balance),
             )
 
-    def get_by_id(self, user_id: str, exclusive_lock: bool = False) -> User:
+    def get_by_id(self, user_id: str, lock_level: LockLevel = LockLevel.NONE) -> User:
         with self.new_operator() as cur:
             query = select_query_helper(
-                "SELECT id, balance FROM users WHERE id = %s", for_update=exclusive_lock
+                "SELECT id, balance FROM users WHERE id = %s", lock_level
             )
             cur.execute(
                 query,
