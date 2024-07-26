@@ -1,4 +1,5 @@
 import pytest
+from app.repositories.base import LockLevel
 from app.repositories.err import EntityNotFoundError
 from app.repositories.postgres.session import PostgresSession
 from app.repositories.user import (
@@ -13,7 +14,9 @@ def test_should_save_and_get_user(repository_session: PostgresSession):
     with repository_session:
         user_repository.save(user)
         assert user == user_repository.get_by_id(user.id)
-        assert user == user_repository.get_by_id(user.id, exclusive_lock=True)
+        assert user == user_repository.get_by_id(
+            user.id, lock_level=LockLevel.EXCLUSIVE
+        )
 
 
 def test_should_raise_not_found_if_user_id_not_exist(

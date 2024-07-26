@@ -6,7 +6,7 @@ from app.models.product import Product
 from app.models.user import User
 from app.repositories.order import OrderRepository, OrderRepositoryFactory
 from app.repositories.product import ProductRepository, ProductRepositoryFactory
-from app.repositories.base import RepositorySession
+from app.repositories.base import LockLevel, RepositorySession
 from app.repositories.user import UserRepository, UserRepositoryFactory
 
 Operator = TypeVar("Operator")
@@ -46,7 +46,9 @@ class OrderService(Generic[Operator]):
 
     def place_order(self, user_id: str, purchase_info: PurchaseInfo):
         with self._session:
-            user = self._user_repository.get_by_id(user_id, exclusive_lock=True)
+            user = self._user_repository.get_by_id(
+                user_id, lock_level=LockLevel.EXCLUSIVE
+            )
             products_by_id = self._fetch_products_with_exclusive_lock(
                 [item.product_id for item in purchase_info.order_items]
             )
@@ -67,7 +69,7 @@ class OrderService(Generic[Operator]):
         products_by_id: dict[str, Product] = {}
         for product_id in product_ids:
             product = self._product_repository.get_by_id(
-                product_id, exclusive_lock=True
+                product_id, lock_level=LockLevel.EXCLUSIVE
             )
             products_by_id[product.id] = product
         return products_by_id

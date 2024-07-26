@@ -5,7 +5,7 @@ from psycopg import Cursor
 
 from app.models.product import Product
 from app.repositories.err import EntityNotFoundError
-from app.repositories.base import AbstractRepository
+from app.repositories.base import AbstractRepository, LockLevel
 from app.repositories.postgres.helper import select_query_helper
 
 Operator = TypeVar("Operator")
@@ -17,7 +17,7 @@ class ProductRepository(AbstractRepository[Operator]):
         pass
 
     @abstractmethod
-    def get_by_id(self, product_id: str, exclusive_lock: bool = False) -> Product:
+    def get_by_id(self, product_id: str, lock_level: LockLevel) -> Product:
         """
         Raises:
             EntityNotFoundError: If no product is found with the provided id.
@@ -70,11 +70,13 @@ class PostgresProductRepository(ProductRepository[Cursor]):
                 ),
             )
 
-    def get_by_id(self, product_id: str, exclusive_lock: bool = False) -> Product:
+    def get_by_id(
+        self, product_id: str, lock_level: LockLevel = LockLevel.NONE
+    ) -> Product:
         with self.new_operator() as cur:
             query = select_query_helper(
                 "SELECT id, name, category, price, quantity FROM products WHERE id = %s;",
-                for_update=exclusive_lock,
+                lock_level,
             )
             cur.execute(
                 query,
