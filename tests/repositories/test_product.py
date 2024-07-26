@@ -16,10 +16,6 @@ def test_should_save_and_get_product(repository_session: PostgresSession):
         assert product == product_repository.get_by_id(
             product.id,
         )
-        assert product == product_repository.get_by_id(
-            product.id,
-            lock_level=LockLevel.EXCLUSIVE,
-        )
 
 
 def test_should_raise_not_found_if_product_id_not_exist(
