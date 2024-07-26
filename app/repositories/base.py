@@ -69,4 +69,6 @@ class AbstractRepository(ABC, Generic[Operator]):
 
 class LockLevel(Enum):
     NONE = auto()
-    EXCLUSIVE = auto()
+    EXCLUSIVE = (
+        auto()
+    )  # It means that the lock is exclusive, and no other transaction can access the locked data concurrently.
