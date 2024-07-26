@@ -17,7 +17,9 @@ class ProductRepository(AbstractRepository[Operator]):
         pass
 
     @abstractmethod
-    def get_by_id(self, product_id: str, lock_level: LockLevel) -> Product:
+    def get_by_id(
+        self, product_id: str, lock_level: LockLevel = LockLevel.NONE
+    ) -> Product:
         """
         Raises:
             EntityNotFoundError: If no product is found with the provided id.
