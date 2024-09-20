@@ -31,7 +31,7 @@ class OrderModel(BaseModel):
             id=order.id,
             items=[
                 OrderItemModel(id=item.product_id, purchase_quantity=item.quantity)
-                for item in order.purchase_info.order_items
+                for item in order.order_items
             ],
         )
 

@@ -1,3 +1,4 @@
+from uuid import uuid4
 from fastapi.testclient import TestClient
 import pytest
 
@@ -142,7 +143,7 @@ def call_sign_up_api(username: str, password: str):
 def call_place_order_api(token: str, order_items: list):
     response = client.post(
         "/orders",
-        json={"order_items": order_items},
+        json={"order_items": order_items, "order_id": str(uuid4())},
         headers={"Authorization": f"Bearer {token}"},
     )
     return response

@@ -58,7 +58,7 @@ class PostgresOrderRepository(OrderRepository[Cursor]):
                 "INSERT INTO orders (id, user_id) VALUES (%s, %s)",
                 (order.id, order.user_id),
             )
-            for item in order.purchase_info.order_items:
+            for item in order.order_items:
                 cursor.execute(
                     "INSERT INTO order_items (order_id, product_id, quantity) VALUES (%s, %s, %s)",
                     (order.id, item.product_id, item.quantity),
@@ -75,7 +75,7 @@ class PostgresOrderRepository(OrderRepository[Cursor]):
             for order_id, _ in order_rows:
                 order_items = self._get_order_items(order_id)
                 orders.append(
-                    Order.create(id=order_id, user_id=user_id, order_items=order_items)
+                    Order(id=order_id, user_id=user_id, order_items=order_items)
                 )
             return orders
 

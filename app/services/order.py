@@ -104,8 +104,8 @@ class OrderService(Generic[Operator]):
 
     def _record_order(self, user_id: str, purchase_info: PurchaseInfo):
         order = Order(
-            id=str(uuid4()),
+            id=str(uuid4()),  # TODO: use id in purchase_info
             user_id=user_id,
-            purchase_info=purchase_info,
+            order_items=purchase_info.order_items,
         )
         self._order_repository.add(order)

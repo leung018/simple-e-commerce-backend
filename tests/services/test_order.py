@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from threading import Thread
 from typing import Generic, Optional, TypeVar
+from uuid import uuid4
 import pytest
 
 from app.dependencies import get_repository_session
@@ -44,7 +45,7 @@ class OrderServiceFixture(Generic[Operator]):
             OrderItem(product_id, quantity)
             for product_id, quantity, in product_id_to_quantity.items()
         )
-        self.order_service.place_order(user_id, PurchaseInfo(order_items))
+        self.order_service.place_order(user_id, PurchaseInfo(order_items, uuid4()))
 
     def get_user(self, user_id):
         with self.session:
@@ -165,7 +166,7 @@ def test_should_make_order_successfully_if_input_valid(
     order = order_service_fixture.get_most_recent_order(user.id)
     assert order is not None
     assert order.user_id == user.id
-    assert order.purchase_info.order_items == (OrderItem("p1", 2), OrderItem("p2", 5))
+    assert order.order_items == (OrderItem("p1", 2), OrderItem("p2", 5))
 
 
 def test_should_order_id_generated_are_different_each_time(
@@ -212,9 +213,7 @@ def test_should_prevent_race_condition_when_placing_orders(
             order_repository_factory,
             get_repository_session(),  # Same session cannot be shared between threads
         )
-        purchase_info = PurchaseInfo(
-            order_items,
-        )
+        purchase_info = PurchaseInfo(order_items, uuid4())
         order_service.place_order(user_id, purchase_info)
 
     # They are the same but in different order. Make sure won't cause deadlock even in this case

@@ -1,3 +1,4 @@
+from uuid import UUID, uuid4
 from pydantic.dataclasses import dataclass
 from pydantic import Field, field_validator
 
@@ -11,6 +12,7 @@ class OrderItem:
 @dataclass(frozen=True)
 class PurchaseInfo:
     order_items: tuple[OrderItem, ...]
+    order_id: UUID
 
     @field_validator("order_items")
     @classmethod
@@ -31,8 +33,4 @@ class PurchaseInfo:
 class Order:
     id: str
     user_id: str
-    purchase_info: PurchaseInfo
-
-    @classmethod
-    def create(cls, id: str, user_id: str, order_items: tuple[OrderItem, ...]):
-        return Order(id, user_id, PurchaseInfo(order_items))
+    order_items: tuple[OrderItem, ...]
