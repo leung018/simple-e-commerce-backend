@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from threading import Thread
 from typing import Generic, Optional, TypeVar
-from uuid import uuid4
+from uuid import UUID, uuid4
 import pytest
 
 from app.dependencies import get_repository_session
@@ -40,12 +40,14 @@ class OrderServiceFixture(Generic[Operator]):
                 self.product_repository.save(product)
             self.session.commit()
 
-    def place_order(self, user_id, product_id_to_quantity: dict[str, int]):
+    def place_order(
+        self, user_id, product_id_to_quantity: dict[str, int], order_id: UUID = uuid4()
+    ):
         order_items = tuple(
             OrderItem(product_id, quantity)
             for product_id, quantity, in product_id_to_quantity.items()
         )
-        self.order_service.place_order(user_id, PurchaseInfo(order_items, uuid4()))
+        self.order_service.place_order(user_id, PurchaseInfo(order_items, order_id))
 
     def get_user(self, user_id):
         with self.session:
@@ -146,11 +148,12 @@ def test_should_make_order_successfully_if_input_valid(
     # total price: 2*2 + 3*5 = 19
 
     user = new_user(balance=19)
+    order_id = uuid4()
 
     order_service_fixture.save_user(user)
     order_service_fixture.save_products([product1, product2])
 
-    order_service_fixture.place_order(user.id, {"p1": 2, "p2": 5})
+    order_service_fixture.place_order(user.id, {"p1": 2, "p2": 5}, order_id)
 
     # Check user balance
     assert order_service_fixture.get_user(user.id).balance == 0
@@ -164,28 +167,9 @@ def test_should_make_order_successfully_if_input_valid(
 
     # Check order is made
     order = order_service_fixture.get_most_recent_order(user.id)
-    assert order is not None
+    assert order.id == str(order_id)
     assert order.user_id == user.id
     assert order.order_items == (OrderItem("p1", 2), OrderItem("p2", 5))
-
-
-def test_should_order_id_generated_are_different_each_time(
-    order_service_fixture: OrderServiceFixture,
-):
-    product = new_product(quantity=10, price=1)
-    user = new_user(balance=100)
-
-    order_service_fixture.save_user(user)
-    order_service_fixture.save_products([product])
-
-    order_service_fixture.place_order(user.id, {product.id: 1})
-    order1 = order_service_fixture.get_most_recent_order(user.id)
-
-    order_service_fixture.place_order(user.id, {product.id: 1})
-    order2 = order_service_fixture.get_most_recent_order(user.id)
-
-    assert order1 is not None and order2 is not None
-    assert order1.id != order2.id
 
 
 def test_should_prevent_race_condition_when_placing_orders(
