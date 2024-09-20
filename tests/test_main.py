@@ -119,6 +119,26 @@ def test_should_response_400_if_my_value_error_throw_from_service_layer(
     }
 
 
+def test_should_response_400_if_cannot_form_valid_purchase_info_from_request(
+    repository_session: RepositorySession,
+):
+    product = new_product(quantity=5, price=1)
+    persist_product(product, repository_session)
+
+    call_sign_up_api("myname", "mypassword")
+    access_token = call_login_api("myname", "mypassword").json()["access_token"]
+
+    # PurchaseRequest that contains duplicate product_id can't form a valid PurchaseInfo. Expect error handling on this case
+    response = call_place_order_api(
+        access_token,
+        [
+            {"product_id": product.id, "quantity": 1},
+            {"product_id": product.id, "quantity": 2},
+        ],
+    )
+    assert response.status_code == 400
+
+
 def persist_product(product: Product, repository_session: RepositorySession):
     product_repository = product_repository_factory(repository_session.new_operator)
     with repository_session:

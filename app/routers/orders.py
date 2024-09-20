@@ -59,7 +59,12 @@ def place_order(
     )
 
     try:
-        order_service.place_order(current_user_id, purchase_request.to_purchase_info())
+        purchase_info = purchase_request.to_purchase_info()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    try:
+        order_service.place_order(current_user_id, purchase_info)
     except MyValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
