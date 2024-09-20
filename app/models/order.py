@@ -12,6 +12,10 @@ class OrderItem:
 @dataclass(frozen=True)
 class PurchaseInfo:
     order_items: tuple[OrderItem, ...]
+
+    # Expect this id is generate from client side so that can prevent duplicate order.
+    # The validation of format of this id from client side is in PurchaseRequest.
+    # Use str here because business logic doesn't care about the format of this id and can make code and test in domain layer simpler.
     order_id: str
 
     @field_validator("order_items")
