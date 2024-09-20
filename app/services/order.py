@@ -4,6 +4,7 @@ from app.err import MyValueError
 from app.models.order import Order, PurchaseInfo
 from app.models.product import Product
 from app.models.user import User
+from app.repositories.err import EntityAlreadyExistsError
 from app.repositories.order import OrderRepository, OrderRepositoryFactory
 from app.repositories.product import ProductRepository, ProductRepositoryFactory
 from app.repositories.base import LockLevel, RepositorySession
@@ -55,7 +56,11 @@ class OrderService(Generic[Operator]):
 
             total_price = self._process_products(purchase_info, products_by_id)
             self._make_payment(user, total_price)
-            self._record_order(user.id, purchase_info)
+
+            try:
+                self._record_order(user.id, purchase_info)
+            except EntityAlreadyExistsError:
+                return  # Return will cancel the transaction to avoid double spending
 
             self._session.commit()
 
