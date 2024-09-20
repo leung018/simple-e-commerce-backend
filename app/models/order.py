@@ -1,3 +1,4 @@
+from uuid import UUID, uuid4
 from pydantic.dataclasses import dataclass
 from pydantic import Field, field_validator
 
@@ -11,6 +12,11 @@ class OrderItem:
 @dataclass(frozen=True)
 class PurchaseInfo:
     order_items: tuple[OrderItem, ...]
+
+    # Expect this id is generate from client side so that can prevent duplicate order.
+    # The validation of format of this id from client side is in PurchaseRequest.
+    # Use str here because business logic doesn't care about the format of this id and can make code and test in domain layer simpler.
+    order_id: str
 
     @field_validator("order_items")
     @classmethod
@@ -31,8 +37,4 @@ class PurchaseInfo:
 class Order:
     id: str
     user_id: str
-    purchase_info: PurchaseInfo
-
-    @classmethod
-    def create(cls, id: str, user_id: str, order_items: tuple[OrderItem, ...]):
-        return Order(id, user_id, PurchaseInfo(order_items))
+    order_items: tuple[OrderItem, ...]

@@ -1,3 +1,4 @@
+from uuid import uuid4
 from fastapi.testclient import TestClient
 import pytest
 
@@ -65,12 +66,12 @@ def test_should_place_order_and_get_placed_order(repository_session: RepositoryS
     product = new_product(quantity=10, price=1)
     persist_product(product, repository_session)
 
-    call_sign_up_api("myname", "mypassword")
-    access_token = call_login_api("myname", "mypassword").json()["access_token"]
+    access_token = fetch_valid_access_token()
 
+    order_id = str(uuid4())
     # Place order
     response = call_place_order_api(
-        access_token, [{"product_id": product.id, "quantity": 5}]
+        access_token, [{"product_id": product.id, "quantity": 5}], order_id=order_id
     )
     assert response.status_code == 201
 
@@ -80,6 +81,7 @@ def test_should_place_order_and_get_placed_order(repository_session: RepositoryS
 
     assert len(response.json()) == 1
     order_response = response.json()[0]
+    assert order_response["id"] == order_id
     assert order_response["items"] == [{"id": product.id, "purchase_quantity": 5}]
 
     # check order id in response same as the one stored in repository
@@ -96,8 +98,7 @@ def test_should_response_400_if_my_value_error_throw_from_service_layer(
     product = new_product(quantity=5, price=1)
     persist_product(product, repository_session)
 
-    call_sign_up_api("myname", "mypassword")
-    access_token = call_login_api("myname", "mypassword").json()["access_token"]
+    access_token = fetch_valid_access_token()
 
     # Both PlaceOrderError and EntityNotFoundError are subclass of MyValueError. Expecting a generic error handling when MyValueError is raised from service layer
 
@@ -118,11 +119,35 @@ def test_should_response_400_if_my_value_error_throw_from_service_layer(
     }
 
 
+def test_should_response_400_if_cannot_form_valid_purchase_info_from_request(
+    repository_session: RepositorySession,
+):
+    product = new_product(quantity=5, price=1)
+    persist_product(product, repository_session)
+
+    access_token = fetch_valid_access_token()
+
+    # PurchaseRequest that contains duplicate product_id can't form a valid PurchaseInfo. Expect error handling on this case
+    response = call_place_order_api(
+        access_token,
+        [
+            {"product_id": product.id, "quantity": 1},
+            {"product_id": product.id, "quantity": 2},
+        ],
+    )
+    assert response.status_code == 400
+
+
 def persist_product(product: Product, repository_session: RepositorySession):
     product_repository = product_repository_factory(repository_session.new_operator)
     with repository_session:
         product_repository.save(product)
         repository_session.commit()
+
+
+def fetch_valid_access_token():
+    call_sign_up_api("myname", "mypassword")
+    return call_login_api("myname", "mypassword").json()["access_token"]
 
 
 def call_login_api(username: str, password: str):
@@ -139,10 +164,10 @@ def call_sign_up_api(username: str, password: str):
     return response
 
 
-def call_place_order_api(token: str, order_items: list):
+def call_place_order_api(token: str, order_items: list, order_id: str = str(uuid4())):
     response = client.post(
         "/orders",
-        json={"order_items": order_items},
+        json={"order_items": order_items, "order_id": order_id},
         headers={"Authorization": f"Bearer {token}"},
     )
     return response

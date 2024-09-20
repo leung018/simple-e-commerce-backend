@@ -12,7 +12,7 @@ def new_order(
         OrderItem(product_id="p2", quantity=3),
     ),
 ):
-    return Order.create(id, user_id, order_items)
+    return Order(id, user_id, order_items)
 
 
 def new_product(id="p1", name="Hello", category="My category", price=6.7, quantity=5):

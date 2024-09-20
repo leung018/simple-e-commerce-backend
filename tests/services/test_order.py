@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from threading import Thread
 from typing import Generic, Optional, TypeVar
+from uuid import UUID, uuid4
 import pytest
 
 from app.dependencies import get_repository_session
@@ -39,12 +40,14 @@ class OrderServiceFixture(Generic[Operator]):
                 self.product_repository.save(product)
             self.session.commit()
 
-    def place_order(self, user_id, product_id_to_quantity: dict[str, int]):
+    def place_order(
+        self, user_id, product_id_to_quantity: dict[str, int], order_id="dummy_id"
+    ):
         order_items = tuple(
             OrderItem(product_id, quantity)
             for product_id, quantity, in product_id_to_quantity.items()
         )
-        self.order_service.place_order(user_id, PurchaseInfo(order_items))
+        self.order_service.place_order(user_id, PurchaseInfo(order_items, order_id))
 
     def get_user(self, user_id):
         with self.session:
@@ -66,7 +69,11 @@ class OrderServiceFixture(Generic[Operator]):
             return orders[0]
 
     def assert_place_order_error(
-        self, user_id, product_id_to_quantity: dict[str, int], expected_err_msg: str
+        self,
+        user_id,
+        product_id_to_quantity: dict[str, int],
+        expected_err_msg: str,
+        order_id: str = "dummy_id",
     ):
         product_ids = list(product_id_to_quantity.keys())
 
@@ -79,7 +86,7 @@ class OrderServiceFixture(Generic[Operator]):
         original_tuples = fetch_user_products_and_order()
 
         with pytest.raises(PlaceOrderError) as exc_info:
-            self.place_order(user_id, product_id_to_quantity)
+            self.place_order(user_id, product_id_to_quantity, order_id)
 
         assert expected_err_msg == str(exc_info.value)
 
@@ -116,7 +123,9 @@ def test_should_raise_error_if_purchase_quantity_is_larger_than_product_quantity
     order_service_fixture.save_products([product])
 
     order_service_fixture.assert_place_order_error(
-        user.id, {product.id: 6}, PlaceOrderError.QUANTITY_NOT_ENOUGH_ERR_MSG
+        user.id,
+        {product.id: 6},
+        expected_err_msg=PlaceOrderError.QUANTITY_NOT_ENOUGH_ERR_MSG,
     )
 
 
@@ -133,7 +142,9 @@ def test_should_raise_error_if_user_balance_is_not_enough_to_buy(
     order_service_fixture.save_products([product1, product2])
 
     order_service_fixture.assert_place_order_error(
-        user.id, {"p1": 2, "p2": 5}, PlaceOrderError.BALANCE_NOT_ENOUGH_ERR_MSG
+        user.id,
+        {"p1": 2, "p2": 5},
+        expected_err_msg=PlaceOrderError.BALANCE_NOT_ENOUGH_ERR_MSG,
     )
 
 
@@ -149,7 +160,7 @@ def test_should_make_order_successfully_if_input_valid(
     order_service_fixture.save_user(user)
     order_service_fixture.save_products([product1, product2])
 
-    order_service_fixture.place_order(user.id, {"p1": 2, "p2": 5})
+    order_service_fixture.place_order(user.id, {"p1": 2, "p2": 5}, "o1")
 
     # Check user balance
     assert order_service_fixture.get_user(user.id).balance == 0
@@ -164,27 +175,28 @@ def test_should_make_order_successfully_if_input_valid(
     # Check order is made
     order = order_service_fixture.get_most_recent_order(user.id)
     assert order is not None
+    assert order.id == "o1"
     assert order.user_id == user.id
-    assert order.purchase_info.order_items == (OrderItem("p1", 2), OrderItem("p2", 5))
+    assert order.order_items == (OrderItem("p1", 2), OrderItem("p2", 5))
 
 
-def test_should_order_id_generated_are_different_each_time(
+def test_should_prevent_placing_same_order_twice(
     order_service_fixture: OrderServiceFixture,
 ):
-    product = new_product(quantity=10, price=1)
-    user = new_user(balance=100)
+    product = new_product("p1", quantity=50, price=2)
+
+    user = new_user(balance=38)
 
     order_service_fixture.save_user(user)
     order_service_fixture.save_products([product])
 
-    order_service_fixture.place_order(user.id, {product.id: 1})
-    order1 = order_service_fixture.get_most_recent_order(user.id)
-
-    order_service_fixture.place_order(user.id, {product.id: 1})
-    order2 = order_service_fixture.get_most_recent_order(user.id)
-
-    assert order1 is not None and order2 is not None
-    assert order1.id != order2.id
+    order_service_fixture.place_order(user.id, {"p1": 2}, "o1")
+    order_service_fixture.assert_place_order_error(
+        user.id,
+        {"p1": 3},
+        order_id="o1",
+        expected_err_msg=PlaceOrderError.ORDER_ALREADY_EXISTS_ERR_MSG,
+    )
 
 
 def test_should_prevent_race_condition_when_placing_orders(
@@ -212,9 +224,7 @@ def test_should_prevent_race_condition_when_placing_orders(
             order_repository_factory,
             get_repository_session(),  # Same session cannot be shared between threads
         )
-        purchase_info = PurchaseInfo(
-            order_items,
-        )
+        purchase_info = PurchaseInfo(order_items, str(uuid4()))
         order_service.place_order(user_id, purchase_info)
 
     # They are the same but in different order. Make sure won't cause deadlock even in this case

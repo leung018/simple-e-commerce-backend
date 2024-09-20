@@ -1,11 +1,12 @@
 from typing import Annotated
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.auth import get_current_user_id
 from app.dependencies import get_repository_session
 from app.err import MyValueError
-from app.models.order import Order, PurchaseInfo
+from app.models.order import Order, OrderItem, PurchaseInfo
 from app.repositories.order import order_repository_factory
 from app.repositories.product import product_repository_factory
 from app.repositories.base import RepositorySession
@@ -14,6 +15,14 @@ from app.services.order import OrderService
 
 
 router = APIRouter()
+
+
+class PurchaseRequest(BaseModel):
+    order_items: tuple[OrderItem, ...]
+    order_id: UUID
+
+    def to_purchase_info(self):
+        return PurchaseInfo(order_items=self.order_items, order_id=str(self.order_id))
 
 
 class OrderItemModel(BaseModel):
@@ -31,14 +40,14 @@ class OrderModel(BaseModel):
             id=order.id,
             items=[
                 OrderItemModel(id=item.product_id, purchase_quantity=item.quantity)
-                for item in order.purchase_info.order_items
+                for item in order.order_items
             ],
         )
 
 
 @router.post("/", status_code=201)
 def place_order(
-    purchase_info: PurchaseInfo,  # For the notes of reusing domain model in the API layer, see the comment of sign_up function in app/routers/auth.py.
+    purchase_request: PurchaseRequest,
     current_user_id: Annotated[str, Depends(get_current_user_id)],
     repository_session: Annotated[RepositorySession, Depends(get_repository_session)],
 ):
@@ -48,6 +57,11 @@ def place_order(
         order_repository_factory,
         repository_session,
     )
+
+    try:
+        purchase_info = purchase_request.to_purchase_info()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     try:
         order_service.place_order(current_user_id, purchase_info)

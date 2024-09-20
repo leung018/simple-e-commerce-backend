@@ -1,3 +1,5 @@
+import pytest
+from app.repositories.err import EntityAlreadyExistsError
 from app.repositories.order import PostgresOrderRepository
 from app.repositories.postgres.session import PostgresSession
 from tests.models.constructor import new_order
@@ -33,3 +35,18 @@ def test_should_get_by_user_id_return_the_orders_with_more_recently_created_at_f
 
         retrieved_orders = order_repository.get_by_user_id("u1")
         assert retrieved_orders == [order2, order1]
+
+
+def test_should_raise_entity_already_exists_if_order_already_exists(
+    repository_session: PostgresSession,
+):
+    order_repository = PostgresOrderRepository(repository_session.new_operator)
+
+    order = new_order()
+    with repository_session:
+        order_repository.add(order)
+        with pytest.raises(EntityAlreadyExistsError) as exc_info:
+            order_repository.add(order)
+    assert str(exc_info.value) == EntityAlreadyExistsError.format_err_msg(
+        "id", order.id
+    )
