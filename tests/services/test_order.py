@@ -41,7 +41,7 @@ class OrderServiceFixture(Generic[Operator]):
             self.session.commit()
 
     def place_order(
-        self, user_id, product_id_to_quantity: dict[str, int], order_id: UUID = uuid4()
+        self, user_id, product_id_to_quantity: dict[str, int], order_id="dummy_id"
     ):
         order_items = tuple(
             OrderItem(product_id, quantity)
@@ -148,12 +148,11 @@ def test_should_make_order_successfully_if_input_valid(
     # total price: 2*2 + 3*5 = 19
 
     user = new_user(balance=19)
-    order_id = uuid4()
 
     order_service_fixture.save_user(user)
     order_service_fixture.save_products([product1, product2])
 
-    order_service_fixture.place_order(user.id, {"p1": 2, "p2": 5}, order_id)
+    order_service_fixture.place_order(user.id, {"p1": 2, "p2": 5}, "o1")
 
     # Check user balance
     assert order_service_fixture.get_user(user.id).balance == 0
@@ -167,7 +166,7 @@ def test_should_make_order_successfully_if_input_valid(
 
     # Check order is made
     order = order_service_fixture.get_most_recent_order(user.id)
-    assert order.id == str(order_id)
+    assert order.id == "o1"
     assert order.user_id == user.id
     assert order.order_items == (OrderItem("p1", 2), OrderItem("p2", 5))
 
@@ -197,7 +196,7 @@ def test_should_prevent_race_condition_when_placing_orders(
             order_repository_factory,
             get_repository_session(),  # Same session cannot be shared between threads
         )
-        purchase_info = PurchaseInfo(order_items, uuid4())
+        purchase_info = PurchaseInfo(order_items, str(uuid4()))
         order_service.place_order(user_id, purchase_info)
 
     # They are the same but in different order. Make sure won't cause deadlock even in this case

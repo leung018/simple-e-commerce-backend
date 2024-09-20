@@ -12,7 +12,7 @@ class OrderItem:
 @dataclass(frozen=True)
 class PurchaseInfo:
     order_items: tuple[OrderItem, ...]
-    order_id: UUID
+    order_id: str
 
     @field_validator("order_items")
     @classmethod
