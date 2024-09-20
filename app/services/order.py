@@ -16,6 +16,7 @@ Operator = TypeVar("Operator")
 class PlaceOrderError(MyValueError):
     QUANTITY_NOT_ENOUGH_ERR_MSG = "quantity of product is not enough for your purchase"
     BALANCE_NOT_ENOUGH_ERR_MSG = "not enough balance"
+    ORDER_ALREADY_EXISTS_ERR_MSG = "order already exists"
 
     @classmethod
     def quantity_not_enough_error(cls):
@@ -57,10 +58,7 @@ class OrderService(Generic[Operator]):
             total_price = self._process_products(purchase_info, products_by_id)
             self._make_payment(user, total_price)
 
-            try:
-                self._record_order(user.id, purchase_info)
-            except EntityAlreadyExistsError:
-                return  # Return will cancel the transaction to avoid double spending
+            self._record_order(user.id, purchase_info)
 
             self._session.commit()
 
@@ -108,9 +106,12 @@ class OrderService(Generic[Operator]):
         self._user_repository.save(user)
 
     def _record_order(self, user_id: str, purchase_info: PurchaseInfo):
-        order = Order(
-            id=str(purchase_info.order_id),
-            user_id=user_id,
-            order_items=purchase_info.order_items,
-        )
-        self._order_repository.add(order)
+        try:
+            order = Order(
+                id=str(purchase_info.order_id),
+                user_id=user_id,
+                order_items=purchase_info.order_items,
+            )
+            self._order_repository.add(order)
+        except EntityAlreadyExistsError:
+            raise PlaceOrderError(PlaceOrderError.ORDER_ALREADY_EXISTS_ERR_MSG)

@@ -69,7 +69,11 @@ class OrderServiceFixture(Generic[Operator]):
             return orders[0]
 
     def assert_place_order_error(
-        self, user_id, product_id_to_quantity: dict[str, int], expected_err_msg: str
+        self,
+        user_id,
+        product_id_to_quantity: dict[str, int],
+        expected_err_msg: str,
+        order_id: str = "dummy_id",
     ):
         product_ids = list(product_id_to_quantity.keys())
 
@@ -82,7 +86,7 @@ class OrderServiceFixture(Generic[Operator]):
         original_tuples = fetch_user_products_and_order()
 
         with pytest.raises(PlaceOrderError) as exc_info:
-            self.place_order(user_id, product_id_to_quantity)
+            self.place_order(user_id, product_id_to_quantity, order_id)
 
         assert expected_err_msg == str(exc_info.value)
 
@@ -119,7 +123,9 @@ def test_should_raise_error_if_purchase_quantity_is_larger_than_product_quantity
     order_service_fixture.save_products([product])
 
     order_service_fixture.assert_place_order_error(
-        user.id, {product.id: 6}, PlaceOrderError.QUANTITY_NOT_ENOUGH_ERR_MSG
+        user.id,
+        {product.id: 6},
+        expected_err_msg=PlaceOrderError.QUANTITY_NOT_ENOUGH_ERR_MSG,
     )
 
 
@@ -136,7 +142,9 @@ def test_should_raise_error_if_user_balance_is_not_enough_to_buy(
     order_service_fixture.save_products([product1, product2])
 
     order_service_fixture.assert_place_order_error(
-        user.id, {"p1": 2, "p2": 5}, PlaceOrderError.BALANCE_NOT_ENOUGH_ERR_MSG
+        user.id,
+        {"p1": 2, "p2": 5},
+        expected_err_msg=PlaceOrderError.BALANCE_NOT_ENOUGH_ERR_MSG,
     )
 
 
@@ -172,30 +180,23 @@ def test_should_make_order_successfully_if_input_valid(
     assert order.order_items == (OrderItem("p1", 2), OrderItem("p2", 5))
 
 
-def test_should_placing_same_order_twice_not_affecting_balance_and_product_quantity(
+def test_should_prevent_placing_same_order_twice(
     order_service_fixture: OrderServiceFixture,
 ):
-    product1 = new_product("p1", quantity=50, price=2)
-    product2 = new_product("p2", quantity=30, price=3)
+    product = new_product("p1", quantity=50, price=2)
 
     user = new_user(balance=38)
 
     order_service_fixture.save_user(user)
-    order_service_fixture.save_products([product1, product2])
+    order_service_fixture.save_products([product])
 
-    # total price: 2*2 + 3*5 = 19
-    order_service_fixture.place_order(user.id, {"p1": 2, "p2": 5}, "o1")
-    order_service_fixture.place_order(user.id, {"p1": 2, "p2": 5}, "o1")
-
-    # Check user balance
-    assert order_service_fixture.get_user(user.id).balance == 19
-
-    # Check product quantities
-    [new_product1, new_product2] = order_service_fixture.get_products(
-        [product1.id, product2.id]
+    order_service_fixture.place_order(user.id, {"p1": 2}, "o1")
+    order_service_fixture.assert_place_order_error(
+        user.id,
+        {"p1": 3},
+        order_id="o1",
+        expected_err_msg=PlaceOrderError.ORDER_ALREADY_EXISTS_ERR_MSG,
     )
-    assert new_product1.quantity == 48
-    assert new_product2.quantity == 25
 
 
 def test_should_prevent_race_condition_when_placing_orders(
