@@ -66,8 +66,7 @@ def test_should_place_order_and_get_placed_order(repository_session: RepositoryS
     product = new_product(quantity=10, price=1)
     persist_product(product, repository_session)
 
-    call_sign_up_api("myname", "mypassword")
-    access_token = call_login_api("myname", "mypassword").json()["access_token"]
+    access_token = fetch_valid_access_token()
 
     # Place order
     response = call_place_order_api(
@@ -97,8 +96,7 @@ def test_should_response_400_if_my_value_error_throw_from_service_layer(
     product = new_product(quantity=5, price=1)
     persist_product(product, repository_session)
 
-    call_sign_up_api("myname", "mypassword")
-    access_token = call_login_api("myname", "mypassword").json()["access_token"]
+    access_token = fetch_valid_access_token()
 
     # Both PlaceOrderError and EntityNotFoundError are subclass of MyValueError. Expecting a generic error handling when MyValueError is raised from service layer
 
@@ -125,8 +123,7 @@ def test_should_response_400_if_cannot_form_valid_purchase_info_from_request(
     product = new_product(quantity=5, price=1)
     persist_product(product, repository_session)
 
-    call_sign_up_api("myname", "mypassword")
-    access_token = call_login_api("myname", "mypassword").json()["access_token"]
+    access_token = fetch_valid_access_token()
 
     # PurchaseRequest that contains duplicate product_id can't form a valid PurchaseInfo. Expect error handling on this case
     response = call_place_order_api(
@@ -144,6 +141,11 @@ def persist_product(product: Product, repository_session: RepositorySession):
     with repository_session:
         product_repository.save(product)
         repository_session.commit()
+
+
+def fetch_valid_access_token():
+    call_sign_up_api("myname", "mypassword")
+    return call_login_api("myname", "mypassword").json()["access_token"]
 
 
 def call_login_api(username: str, password: str):
