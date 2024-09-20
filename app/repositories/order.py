@@ -2,9 +2,11 @@ from abc import abstractmethod
 from typing import Callable, TypeAlias, TypeVar
 
 from psycopg import Cursor
+import psycopg
 
 from app.models.order import Order, OrderItem
 from app.repositories.base import AbstractRepository
+from app.repositories.err import EntityAlreadyExistsError
 
 Operator = TypeVar("Operator")
 
@@ -12,6 +14,10 @@ Operator = TypeVar("Operator")
 class OrderRepository(AbstractRepository[Operator]):
     @abstractmethod
     def add(self, order: Order):
+        """
+        Raises:
+            EntityAlreadyExistsError: If order already exists
+        """
         pass
 
     @abstractmethod
@@ -54,10 +60,14 @@ class PostgresOrderRepository(OrderRepository[Cursor]):
 
     def add(self, order: Order):
         with self.new_operator() as cursor:
-            cursor.execute(
-                "INSERT INTO orders (id, user_id) VALUES (%s, %s)",
-                (order.id, order.user_id),
-            )
+            try:
+                cursor.execute(
+                    "INSERT INTO orders (id, user_id) VALUES (%s, %s)",
+                    (order.id, order.user_id),
+                )
+            except psycopg.errors.UniqueViolation:
+                raise EntityAlreadyExistsError.create("id", order.id)
+
             for item in order.order_items:
                 cursor.execute(
                     "INSERT INTO order_items (order_id, product_id, quantity) VALUES (%s, %s, %s)",
