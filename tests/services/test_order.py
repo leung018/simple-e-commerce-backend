@@ -166,6 +166,7 @@ def test_should_make_order_successfully_if_input_valid(
 
     # Check order is made
     order = order_service_fixture.get_most_recent_order(user.id)
+    assert order is not None
     assert order.id == "o1"
     assert order.user_id == user.id
     assert order.order_items == (OrderItem("p1", 2), OrderItem("p2", 5))
