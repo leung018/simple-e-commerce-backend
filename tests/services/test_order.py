@@ -134,9 +134,9 @@ def test_should_raise_error_if_user_balance_is_not_enough_to_buy(
 ):
     product1 = new_product("p1", quantity=99, price=2)
     product2 = new_product("p2", quantity=99, price=3)
-    # total price: 2*2 + 3*5 = 19
 
     user = new_user(balance=18.9)
+    # total price: 2*2 + 3*5 = 19
 
     order_service_fixture.save_user(user)
     order_service_fixture.save_products([product1, product2])
@@ -153,7 +153,6 @@ def test_should_make_order_successfully_if_input_valid(
 ):
     product1 = new_product("p1", quantity=50, price=2)
     product2 = new_product("p2", quantity=30, price=3)
-    # total price: 2*2 + 3*5 = 19
 
     user = new_user(balance=19)
 
@@ -161,6 +160,7 @@ def test_should_make_order_successfully_if_input_valid(
     order_service_fixture.save_products([product1, product2])
 
     order_service_fixture.place_order(user.id, {"p1": 2, "p2": 5}, "o1")
+    # total price: 2*2 + 3*5 = 19
 
     # Check user balance
     assert order_service_fixture.get_user(user.id).balance == 0
