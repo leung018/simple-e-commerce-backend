@@ -68,9 +68,10 @@ def test_should_place_order_and_get_placed_order(repository_session: RepositoryS
 
     access_token = fetch_valid_access_token()
 
+    order_id = str(uuid4())
     # Place order
     response = call_place_order_api(
-        access_token, [{"product_id": product.id, "quantity": 5}]
+        access_token, [{"product_id": product.id, "quantity": 5}], order_id=order_id
     )
     assert response.status_code == 201
 
@@ -80,6 +81,7 @@ def test_should_place_order_and_get_placed_order(repository_session: RepositoryS
 
     assert len(response.json()) == 1
     order_response = response.json()[0]
+    assert order_response["id"] == order_id
     assert order_response["items"] == [{"id": product.id, "purchase_quantity": 5}]
 
     # check order id in response same as the one stored in repository
@@ -162,10 +164,10 @@ def call_sign_up_api(username: str, password: str):
     return response
 
 
-def call_place_order_api(token: str, order_items: list):
+def call_place_order_api(token: str, order_items: list, order_id: str = str(uuid4())):
     response = client.post(
         "/orders",
-        json={"order_items": order_items, "order_id": str(uuid4())},
+        json={"order_items": order_items, "order_id": order_id},
         headers={"Authorization": f"Bearer {token}"},
     )
     return response
